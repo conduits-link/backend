@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Our applications
+    'user_accounts.apps.UserAccountsConfig',
 ]
 
 MIDDLEWARE = [
@@ -75,8 +77,12 @@ WSGI_APPLICATION = 'nw_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE'  : 'django.db.backends.mysql',
+        'NAME'    : 'noteworthydb',
+        'USER'    : 'nw',
+        'PASSWORD': 'JnlezOy`nC411"I}4S`Z',
+        'HOST'    : 'localhost',
+        'PORT'    : '3306',
     }
 }
 

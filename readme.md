@@ -30,6 +30,6 @@ See [docs/architecture.md](docs/architecture.md) for design decisions.
 
 * Run the development web server:
     ```
-    python manage.py runserver
+    python nw_backend/manage.py runserver
     ```
     

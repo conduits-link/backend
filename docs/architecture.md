@@ -8,3 +8,6 @@
     * Store user details, user text files, and links to other user media files
     * SQLite has size restrictions and can't be used with client-server model
     * PostgreSQL seemed like overkill for now
+
+* JWT (JSON web token) User authentication
+  * Saves server memory

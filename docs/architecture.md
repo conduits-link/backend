@@ -11,3 +11,12 @@
 
 * JWT (JSON web token) User authentication
   * Saves server memory
+
+## Models
+
+Each account should store:
+* Email, username, password
+* Text editor files
+* Links to other media
+
+In future we may add social media-type functionality, e.g. profile pictures, friends, etc.

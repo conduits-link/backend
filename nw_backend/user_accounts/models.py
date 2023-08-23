@@ -1,12 +1,12 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+# from django.contrib.auth.models import AbstractUser
 
 class EditorFile(models.Model):
 
     title = models.CharField(max_length=50, help_text='Title of file')
 
     # 25000 chars ≈ 5000 words. Temporary length limit.
-    file_text = models.CharField(max_length=25000, help_text='Text stored in file')
+    file_text = models.TextField(max_length=25000, help_text='Text stored in file')
 
     date_created = models.DateTimeField()
 
@@ -18,5 +18,5 @@ class EditorFile(models.Model):
         return self.title
     
 
-class User(AbstractUser):
-    pass
+# class User(AbstractUser):
+#     pass

@@ -23,9 +23,22 @@
             <ul class="sidebar-nav">
               <li><a href="{% url 'index' %}">Home</a></li>
               <li><a href="{% url 'files' %}">All files</a></li>
-              <li><a href="{% url 'register-account' %}">Register account</a></li>
-              <li><a href="{% url 'login' %}">Login</a></li>
-            </ul>
+          
+            <!-- Show username and logout button if logged in.  -->
+            {% if user.is_authenticated %}
+              <li>User: {{ user.get_username }}</li>
+
+              <!-- Redirect back to home after logging out. -->
+              <li><a href="{% url 'logout' %}?next={% url 'index' %}">Logout</a></li>
+
+            <!-- Show register and login buttons if not logged in.  -->
+            {% else %}
+              <li><a href="{% url 'register' %}">Register account</a></li>
+
+              <!-- Redirect back to home after logging in. -->
+              <li><a href="{% url 'login' %}?next={% url 'index' %}">Login</a></li>
+            {% endif %}
+            </ul>          
           {% endblock %}
           {% block pagination %}
             {% if is_paginated %}

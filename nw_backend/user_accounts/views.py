@@ -1,4 +1,11 @@
 from django.shortcuts import render
+from django.views import generic
+
+# Allows you to put @login_required before a view to hide it from logged-out users.
+from django.contrib.auth.decorators import login_required
+
+# Allows you to hide pages from logged-in users.
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
 
@@ -23,7 +30,7 @@ def index(request):
     # Render the HTML template index.html with the data in the context variable
     return render(request, 'index.html', context=context)
 
-from django.views import generic
+
 
 class EditorFileListView(generic.ListView):
     model = EditorFile
@@ -32,40 +39,20 @@ class EditorFileListView(generic.ListView):
 class EditorFileDetailView(generic.DetailView):
     model = EditorFile
 
-from django.shortcuts import  redirect
-from .forms import NewUserForm
 from django.contrib.auth import login
-from django.contrib import messages
+from django.shortcuts import render, redirect
+from .forms import UserCreationForm
 
-def register_account_request(request):
-	if request.method == "POST":
-		form = NewUserForm(request.POST)
-		if form.is_valid():
-			user = form.save()
-			login(request, user)
-			messages.success(request, "Registration successful." )
-			return redirect("index")
-		messages.error(request, "Unsuccessful registration. Invalid information.")
-	form = NewUserForm()
-	return render (request=request, template_name="register_account.html", context={"register_account_form":form})
-
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import AuthenticationForm #add this
-
-def login_request(request):
-	if request.method == "POST":
-		form = AuthenticationForm(request, data=request.POST)
-		if form.is_valid():
-			username = form.cleaned_data.get('username')
-			password = form.cleaned_data.get('password')
-			user = authenticate(username=username, password=password)
-			if user is not None:
-				login(request, user)
-				messages.info(request, f"You are now logged in as {username}.")
-				return redirect("index")
-			else:
-				messages.error(request,"Invalid username or password.")
-		else:
-			messages.error(request,"Invalid username or password.")
-	form = AuthenticationForm()
-	return render(request=request, template_name="login.html", context={"login_form":form})
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('index')  # Redirect to your home page
+        else:
+            # Form is invalid, render the template with errors
+            return render(request, 'registration/register.html', {'form': form})
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})

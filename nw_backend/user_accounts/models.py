@@ -21,12 +21,13 @@ class EditorFile(models.Model):
     # Methods
     def get_absolute_url(self):
         """Returns the URL to access a particular instance of EditorFile."""
-        return reverse('model-detail-view', args=[str(self.id)])
+        return reverse('file-detail', args=[str(self.id)])
 
     def __str__(self):
         """String for representing the EditorFile object (in Admin site etc.)."""
         return self.title
-    
 
-# class User(AbstractUser):
-#     pass
+from django.contrib.auth.models import AbstractUser 
+
+class User(AbstractUser):
+    pass

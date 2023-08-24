@@ -2,9 +2,9 @@
 
 {% block content %}
   <h1>Editor File List</h1>
-  {% if file_list %}
+  {% if editorfile_list %}
     <ul>
-      {% for file in file_list %}
+      {% for file in editorfile_list %}
       <li>
         <a href="{{ file.get_absolute_url }}">{{ file.title }}</a>
         ({{file.author}})

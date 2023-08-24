@@ -1,21 +1,10 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-  <h1>Editor File List</h1>
-  {% if file_list %}
-    <ul>
-      {% for file in file_list %}
-      <li>
-        <a href="{{ file.get_absolute_url }}">{{ file.title }}</a>
-        ({{file.author}})
-        ({{file.date_created}})
-      </li>
-      <li>
-        ({{file.text}})
-      </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>There are no files in the library.</p>
-  {% endif %}
+  <h1>Title: {{ editorfile.title }}</h1>
+
+  <p><strong>Author:</strong> <a href="">{{ editorfile.author }}</a></p>
+  <!-- author detail link not yet defined -->
+  <p><strong>Date Created:</strong> {{ editorfile.date_created }}</p>
+  <p><strong>Text:</strong> {{ editorfile.file_text }}</p>
 {% endblock %}

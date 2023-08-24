@@ -1,4 +1,6 @@
 from django.contrib import admin
-from .models import EditorFile
+from django.contrib.auth.admin import UserAdmin
+from .models import EditorFile, User
 
 admin.site.register(EditorFile)
+admin.site.register(User, UserAdmin)

@@ -1,6 +1,6 @@
 # Noteworthy Backend
 
-Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy).
+Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing text editor based around Large Language Models and other AI tooling.
 
 See [docs/architecture.md](docs/architecture.md) for design decisions.
 
@@ -10,9 +10,9 @@ See [docs/architecture.md](docs/architecture.md) for design decisions.
 
 See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Getting Started docs.
 
-* First, install MySQL - see [here](https://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-installing) for details.
+* First, install MySQL - see [here](https://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-installing) for download links and details.
 
-* Check it works by logging in as root. In your terminal, run:
+* Check your MySQL installation works properly by logging in as root. In your terminal, run:
   ```
   mysql -u root -p
   ```

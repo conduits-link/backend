@@ -1,6 +1,6 @@
 # Noteworthy Backend
 
-Django Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy).
+Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy).
 
 See [docs/architecture.md](docs/architecture.md) for design decisions.
 

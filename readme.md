@@ -35,6 +35,8 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
 * Create the database `noteworthydb` as follows. In terminal – not logged into MySQL – run:
   ```bash
   mysql -u nw -p
+
+  # nw is the username you set above.
   ```
   and enter the password above, ``JnlezOy`nC411"I}4S`Z``, to log into your newly created superuser account. Then run:
   ```SQL

@@ -60,7 +60,7 @@ Well done! From this point on, we only need worry about Django and the code in t
     pip install django mysqlclient 
     ```
 
-* Migrate the models in [models.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/user_accounts/models.py) to our `noteworthydb` database:
+* Migrate the models in [models.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/user_accounts/models.py) to our newly created `noteworthydb` database:
 
     ```bash
     python nw_backend/manage.py makemigrations

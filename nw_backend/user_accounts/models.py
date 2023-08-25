@@ -1,6 +1,6 @@
 from django.db import models
 from django.urls import reverse
-# from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser 
 
 class EditorFile(models.Model):
 
@@ -26,8 +26,6 @@ class EditorFile(models.Model):
     def __str__(self):
         """String for representing the EditorFile object (in Admin site etc.)."""
         return self.title
-
-from django.contrib.auth.models import AbstractUser 
 
 class User(AbstractUser):
     pass

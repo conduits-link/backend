@@ -28,6 +28,8 @@
             {% if user.is_authenticated %}
               <li>User: {{ user.get_username }}</li>
 
+              <li><a href="{% url 'new-file' %}">New file </a> </li>
+
               <!-- Redirect back to home after logging out. -->
               <li><a href="{% url 'logout' %}?next={% url 'index' %}">Logout</a></li>
 

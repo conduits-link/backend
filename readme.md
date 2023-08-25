@@ -40,7 +40,7 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
   ```
   CREATE DATABASE noteworthydb;
   ```
-  * This name is also specified in the settings.py `DATABASE` variable.
+  * This name is also specified in the [settings.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/nw_backend/settings.py) `DATABASE` variable on line 79.
  
 Well done! From this point on, we only need worry about Django and the code in this repo.
  

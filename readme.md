@@ -8,7 +8,7 @@ See [docs/architecture.md](docs/architecture.md) for design decisions.
 
 ### Set up MySQL Database
 
-See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Getting Started docs.
+See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Getting Started docs, or follow the steps below.
 
 * First, install MySQL – see [here](https://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-installing) for download links and details.
 

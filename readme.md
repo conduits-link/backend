@@ -1,6 +1,6 @@
 # Noteworthy Backend
 
-Backend for [Noteworthy](httphttps://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-connectings://github.com/dan-smith-tech/nhttps://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-connectingoteworthy).
+Backend for [Noteworthy](https://github.com/dan-smith-tech/noteworthy).
 
 See [docs/architecture.md](docs/architecture.md) for design decisions.
 

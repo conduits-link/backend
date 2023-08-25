@@ -46,7 +46,7 @@ Well done! From this point on, we only need worry about Django and the code in t
  
 ### Django and Server
 
-* Set up and activate a Python virtual environment. Install the necessary packages.
+* Set up and activate a Python virtual environment, and install the necessary packages.
 
     ```python
     python venv path/to/your/venv

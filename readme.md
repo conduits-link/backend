@@ -1,6 +1,6 @@
 # Noteworthy Backend
 
-Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing text editor based around Large Language Models and other AI tooling.
+Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
 
 See [docs/architecture.md](docs/architecture.md) for design decisions.
 
@@ -26,17 +26,23 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
        ON *.*
        TO 'nw'@'localhost'
        WITH GRANT OPTION;
+     
+     exit -- Log out of root.
      ```
     
   * The username and password are chosen here to match the Django [settings.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/nw_backend/settings.py) configuration – see the `DATABASE` variable on line 79. We can and should change these later.
 
   * See [here](https://dev.mysql.com/doc/refman/8.0/en/creating-accounts.html#creating-accounts-granting-privileges) for more details on creating a superuser.
 
-* Create the database `noteworthydb` as follows. In terminal – not logged into MySQL – run:
+* Back in the terminal, run:
   ```bash
   mysql -u nw -p
+
+  # nw is the username you set above.
   ```
-  and enter the password above, ``JnlezOy`nC411"I}4S`Z``, to log into your newly created superuser account. Then run:
+  and enter the password above, ``JnlezOy`nC411"I}4S`Z``, to log into your newly created superuser account.
+
+  Now you're inside MySQL, run:
   ```SQL
   CREATE DATABASE noteworthydb;
   ```
@@ -54,7 +60,7 @@ Well done! From this point on, we only need worry about Django and the code in t
     pip install django mysqlclient 
     ```
 
-* Migrate the models in [models.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/user_accounts/models.py) to our `noteworthydb` database:
+* Migrate the models in [models.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/user_accounts/models.py) to our newly created `noteworthydb` database:
 
     ```bash
     python nw_backend/manage.py makemigrations

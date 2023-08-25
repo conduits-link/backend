@@ -2,6 +2,7 @@ from django import forms
 from .models import User, EditorFile
 
 class UserCreationForm(forms.ModelForm):
+    """Default user creation form, with password confirmation."""
     password1 = forms.CharField(
         label="Password",
         widget=forms.PasswordInput,
@@ -14,10 +15,11 @@ class UserCreationForm(forms.ModelForm):
     )
 
     class Meta:
-        model = User  # Assuming you're using Django's User model
+        model = User
         fields = ('username', 'email')
 
-class NewEditorFile(forms.ModelForm):
+class CreateEditorFile(forms.ModelForm):
+    """Form to allow user creation or editing of basic textual EditorFile."""
 
     title = forms.CharField(
         label="Title Input",

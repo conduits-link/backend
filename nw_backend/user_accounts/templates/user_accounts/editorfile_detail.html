@@ -7,5 +7,6 @@
   <!-- author detail link not yet defined -->
   <p><strong>Date Created:</strong> {{ editorfile.date_created }}</p>
   <p><strong>Text:</strong> {{ editorfile.file_text }}</p>
-  <p> <a href="{% url 'edit-file' pk=editorfile.pk %}">Edit file </a> </p>
+  <p> <a href="{% url 'edit-file' pk=editorfile.pk %}">Edit file</a></p>
+  <p> <a href="{% url 'delete-file' pk=editorfile.pk %}">Delete file</a></p>
 {% endblock %}

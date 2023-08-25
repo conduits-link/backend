@@ -73,7 +73,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'nw_backend.wsgi.application'
 
 
-# Database
+# Database - using MySQL. Currently using temporary account details.
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {

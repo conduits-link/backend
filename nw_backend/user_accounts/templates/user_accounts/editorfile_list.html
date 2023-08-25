@@ -2,17 +2,19 @@
 
 {% block content %}
   <h1>Editor File List</h1>
-  {% if editorfile_list %}
-    <ul>
-      {% for file in editorfile_list %}
+  {% if filedeleted %}
+    <p>File deleted.</p>
+  {% endif %}
+
+  <ul>
+    {% for file in editorfile_list %}
       <li>
         <a href="{{ file.get_absolute_url }}">{{ file.title }}</a>
         ({{file.author}})
         ({{file.date_created}})
       </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>There are no files in the database.</p>
-  {% endif %}
+      {% empty %}
+        <p>There are no files in the database.</p>
+    {% endfor %}
+  </ul>
 {% endblock %}

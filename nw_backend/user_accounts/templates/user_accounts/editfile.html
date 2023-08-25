@@ -6,7 +6,7 @@
     <p>There was an error with your submission. Please correct the errors below.</p>
   {% endif %}
 
-  <form method="post" action="{% url 'edit-file' %}">
+  <form method="post" action="{% url 'edit-file' pk=file_instance.pk %}">
     {% csrf_token %}
     <table>
       <tr>

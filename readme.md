@@ -13,15 +13,15 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
 * First, install MySQL – see [here](https://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-installing) for download links and details.
 
 * Check your MySQL installation works properly by logging in as root. In your terminal, run:
-  ```
+  ```bash
   mysql -u root -p
   ```
   and type in your root password.
 
 * Now you're logged into MySQL, create a new superuser account as follows:
-     ```
-     CREATE USER 'nw'@'localhost'
-       IDENTIFIED BY 'JnlezOy`nC411"I}4S`Z';
+     ```SQL
+     CREATE USER 'nw'@'localhost'            -- This is the username.
+       IDENTIFIED BY 'JnlezOy`nC411"I}4S`Z'; -- This is the password.
      GRANT ALL
        ON *.*
        TO 'nw'@'localhost'
@@ -33,11 +33,11 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
   * See [here](https://dev.mysql.com/doc/refman/8.0/en/creating-accounts.html#creating-accounts-granting-privileges) for more details on creating a superuser.
 
 * Create the database `noteworthydb` as follows. In terminal – not logged into MySQL – run:
-  ```
+  ```bash
   mysql -u nw -p
   ```
   and enter the password above, ``JnlezOy`nC411"I}4S`Z``, to log into your newly created superuser account. Then run:
-  ```
+  ```SQL
   CREATE DATABASE noteworthydb;
   ```
   * This name is also specified in the [settings.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/nw_backend/settings.py) `DATABASE` variable on line 79.
@@ -48,7 +48,7 @@ Well done! From this point on, we only need worry about Django and the code in t
 
 * Set up and activate a Python virtual environment, and install the necessary packages.
 
-    ```python
+    ```bash
     python venv path/to/your/venv
     source path/to/your/venv/bin/activate
     pip install django mysqlclient 
@@ -69,7 +69,7 @@ Well done! From this point on, we only need worry about Django and the code in t
   and enter a username, email and password.
 
 * Run the development web server:
-    ```
+    ```bash
     python nw_backend/manage.py runserver
     ```
     and visit the address it gives you - probably something like `http://127.0.0.1:8000/`.

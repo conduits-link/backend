@@ -1,6 +1,6 @@
 # Noteworthy Backend
 
-Backend for [Noteworthy](https://github.com/dan-smith-tech/noteworthy).
+Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy).
 
 See [docs/architecture.md](docs/architecture.md) for design decisions.
 

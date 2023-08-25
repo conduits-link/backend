@@ -73,7 +73,8 @@ Well done! From this point on, we only need worry about Django and the code in t
     python nw_backend/manage.py runserver
     ```
     and visit the address it gives you - probably something like `http://127.0.0.1:8000/`.
-  * If you visit `http://127.0.0.1:8000/admin` and enter your application superuser details you'll be able to view the Django administration page for the site.
+
+* Visit `http://127.0.0.1:8000/admin` and enter your application superuser details. You should be able to view the Django administration page for the site.
  
 Great job! You're all ready to start development on the site.
     

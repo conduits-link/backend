@@ -1,6 +1,6 @@
 # Noteworthy Backend
 
-Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing text editor based around Large Language Models and other AI tooling.
+Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
 
 See [docs/architecture.md](docs/architecture.md) for design decisions.
 

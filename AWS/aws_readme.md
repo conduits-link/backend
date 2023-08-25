@@ -63,15 +63,9 @@ In other words, we can finally send our model data (e.g. a question), and it wil
 
 When we're done, we must destroy all of our AWS infrastructure, else we will incur additional costs.
 
-* Firstly, our AI container in ECR is stored in AWS storage - S3, along with any training data we may have uploaded.
-
-* Secondly, our endpoints, which were created in Step Functions rather than Terraform, must be destroyed.
-
-* Thirdly, our AWS infrastructure must be destroyed. Fortunately, thanks to Terraform, this is the easy part.
-
 1. On the Amazon S3 console, delete the training set and all the models we trained.
 
-  (The models can also be deleted from the AWS CLI.)
+    (The models can also be deleted from the AWS CLI.)
 
 2. Delete the SageMaker endpoints, endpoint configuration, and models created via Step Functions - either via the SageMaker console or the AWS CLI.
 

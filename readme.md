@@ -36,7 +36,7 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
   ```
   mysql -u nw -p
   ```
-  and enter the password above, `JnlezOy\`nC411"I}4S\`Z`, to log into your newly created superuser account. Then run:
+  and enter the password above, ``JnlezOy`nC411"I}4S`Z``, to log into your newly created superuser account. Then run:
   ```
   CREATE DATABASE noteworthydb;
   ```

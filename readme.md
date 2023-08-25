@@ -26,19 +26,23 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
        ON *.*
        TO 'nw'@'localhost'
        WITH GRANT OPTION;
+     
+     exit -- Log out of root.
      ```
     
   * The username and password are chosen here to match the Django [settings.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/nw_backend/settings.py) configuration – see the `DATABASE` variable on line 79. We can and should change these later.
 
   * See [here](https://dev.mysql.com/doc/refman/8.0/en/creating-accounts.html#creating-accounts-granting-privileges) for more details on creating a superuser.
 
-* Create the database `noteworthydb` as follows. In terminal – not logged into MySQL – run:
+* Back in the terminal, run:
   ```bash
   mysql -u nw -p
 
   # nw is the username you set above.
   ```
-  and enter the password above, ``JnlezOy`nC411"I}4S`Z``, to log into your newly created superuser account. Now you're inside MySQL, run:
+  and enter the password above, ``JnlezOy`nC411"I}4S`Z``, to log into your newly created superuser account.
+
+  Now you're inside MySQL, run:
   ```SQL
   CREATE DATABASE noteworthydb;
   ```

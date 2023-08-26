@@ -20,7 +20,7 @@ inference_instance_type = "ml.m5.xlarge"
 # Set to 26 for LLaMA 2 13B.
 volume_size_sagemaker = 14 
 
-## Should not be changed with the current folder structure
-handler_path  = "../../src/lambda_function"
+# Config stored in config_lambda.py
+handler_path  = "AWS/terraform"
 handler       = "config_lambda.lambda_handler"
 

@@ -46,7 +46,7 @@ First of all, [install Terraform](https://developer.hashicorp.com/terraform/tuto
 
 With Terraform installed, the following can be run to deploy the AWS Sagemaker instances specified in [terraform.tfvars](infrastructure/terraform.tfvars).
 
-[**Warning:** This _will_ cost you money if you're not careful!!]
+[**Warning:** This _will_ cost you money if you're not careful!]
 
 ```bash
 export AWS_PROFILE=<your_aws_cli_profile_name>
@@ -117,15 +117,9 @@ In other words, we can finally send our model data (e.g. a question), and it wil
 
 When we're done, we must destroy all of our AWS infrastructure, else we will incur (substantial!) additional costs.
 
-* Firstly, our AI container in ECR is stored in AWS storage - S3, along with any training data we may have uploaded.
-
-* Secondly, our endpoints, which were created in Step Functions rather than Terraform, must be destroyed.
-
-* Thirdly, our AWS infrastructure must be destroyed. Fortunately, thanks to Terraform, this is the easy part.
-
 1. On the Amazon S3 console, delete the training set and all the models we trained.
 
-  (The models can also be deleted from the AWS CLI.)
+    (The models can also be deleted from the AWS CLI.)
 
 2. Delete the SageMaker endpoints, endpoint configuration, and models created via Step Functions - either via the SageMaker console or the AWS CLI.
 

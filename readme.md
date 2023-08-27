@@ -4,6 +4,8 @@ Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/
 
 See [docs/architecture.md](docs/architecture.md) for design decisions.
 
+See [AWS/aws_readme.md](AWS/aws_readme.md) for details on how to deploy a LLaMA 2 model onto AWS using Terraform.
+
 ## Get Started - Development
 
 ### Set up MySQL Database

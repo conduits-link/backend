@@ -2,7 +2,7 @@
 
 Django, MySQL and AWS Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
 
-* See [https://github.com/jhels/noteworthy-frontend](here) for the frontend we are deploying.
+* See [noteworthy-frontend](https://github.com/jhels/noteworthy-frontend) for the associated frontend we're deploying.
 
 * See [docs/architecture.md](docs/architecture.md) for design decisions.
 

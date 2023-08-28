@@ -46,7 +46,7 @@ First of all, [install Terraform](https://developer.hashicorp.com/terraform/tuto
 
 With Terraform installed, the following can be run to deploy the AWS Sagemaker instances specified in [terraform.tfvars](infrastructure/terraform.tfvars).
 
-[**Warning:** This _will_ cost you money if you're not careful!]
+[**Warning:** This _will_ cost you money if you're not careful! Make sure to [clean up](#cleanup) when you're doen.]
 
 ```bash
 export AWS_PROFILE=<your_aws_cli_profile_name>

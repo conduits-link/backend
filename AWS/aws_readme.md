@@ -38,7 +38,7 @@ Todo.
 
 ### AWS setup
 
-Now we've created our containerised AI mode, we're ready to deploy it on AWS, as disussed below. See [this Amazon article](https://aws.amazon.com/blogs/machine-learning/deploy-and-manage-machine-learning-pipelines-with-terraform-using-amazon-sagemaker/) for more details on this process.
+Now we've created our containerised AI model, we're ready to deploy it on AWS, as disussed below. See [this Amazon article](https://aws.amazon.com/blogs/machine-learning/deploy-and-manage-machine-learning-pipelines-with-terraform-using-amazon-sagemaker/) for more details on this process.
 
 First of all, [install Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
 

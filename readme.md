@@ -1,10 +1,12 @@
 # Noteworthy Backend
 
-Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
+Django, MySQL and AWS Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
 
-See [docs/architecture.md](docs/architecture.md) for design decisions.
+* See [https://github.com/jhels/noteworthy-frontend](here) for the frontend we are deploying.
 
-See [AWS/aws_readme.md](AWS/aws_readme.md) for details on how to deploy a LLaMA 2 model onto AWS using Terraform.
+* See [docs/architecture.md](docs/architecture.md) for design decisions.
+
+* See [AWS/aws_readme.md](AWS/aws_readme.md) for details on how to deploy a LLaMA 2 model onto AWS using Terraform.
 
 ## Get Started - Development
 

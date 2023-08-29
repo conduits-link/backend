@@ -80,7 +80,7 @@ where `llama-container` can be whatever name you like, and `llama-image` should 
 
 ### AWS setup
 
-Now we've created our containerised AI mode, we're ready to deploy it on AWS, as disussed below. See [this Amazon article](https://aws.amazon.com/blogs/machine-learning/deploy-and-manage-machine-learning-pipelines-with-terraform-using-amazon-sagemaker/) for more details on this process.
+Now we've created our containerised AI model, we're ready to deploy it on AWS, as disussed below. See [this Amazon article](https://aws.amazon.com/blogs/machine-learning/deploy-and-manage-machine-learning-pipelines-with-terraform-using-amazon-sagemaker/) for more details on this process.
 
 First of all, [install Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
 
@@ -88,7 +88,7 @@ First of all, [install Terraform](https://developer.hashicorp.com/terraform/tuto
 
 With Terraform installed, the following can be run to deploy the AWS Sagemaker instances specified in [terraform.tfvars](infrastructure/terraform.tfvars).
 
-[**Warning:** This _will_ cost you money if you're not careful!]
+[**Warning:** This _will_ cost you money if you're not careful! Make sure to [clean up](#cleanup) when you're done.]
 
 ```bash
 export AWS_PROFILE=<your_aws_cli_profile_name>

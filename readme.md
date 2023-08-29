@@ -1,8 +1,12 @@
 # Noteworthy Backend
 
-Django and MySQL Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
+Django, MySQL and AWS Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
 
-See [docs/architecture.md](docs/architecture.md) for design decisions.
+* See [noteworthy-frontend](https://github.com/jhels/noteworthy-frontend) for the associated frontend we're deploying.
+
+* See [docs/architecture.md](docs/architecture.md) for design decisions.
+
+* See [AWS/aws_readme.md](AWS/aws_readme.md) for details on how to deploy a LLaMA 2 model onto AWS using Terraform.
 
 ## Get Started - Development
 
@@ -80,7 +84,7 @@ Well done! From this point on, we only need worry about Django and the code in t
     ```
     and visit the address it gives you - probably something like `http://127.0.0.1:8000/`.
 
-* Visit `http://127.0.0.1:8000/admin` and enter your application superuser details. You should be able to view the Django administration page for the site.
+* Visit `http://127.0.0.1:8000/admin` (or the equivalent if your local server's IP address is different) and enter the admin account details that you just made for the app. You should be able to view the Django administration page for the site.
  
 Great job! You're all ready to start development on the site.
     

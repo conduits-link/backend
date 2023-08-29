@@ -13,28 +13,70 @@ See below for a step-by-step guide on how to deploy LLaMA 2 onto AWS from scratc
 
 First of all, install [Docker](https://docs.docker.com/engine/install/).
 
-#### Downloading LLaMA
+#### Set up LLaMA
 
-In this tutorial, we download vanilla Meta LLaMA 2. You may also wish to consider downloading a different Open LLM, for example one taken from the Hugging Face [Open LLM Leaderboards](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard).
+In this tutorial, we download Meta's LLaMA 2. You may also wish to consider deploying a different Open LLM, for example one taken from the Hugging Face [Open LLM Leaderboards](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard).
 
-* Clone [this](https://github.com/facebookresearch/llama) Meta LLaMA repo.
+* In terminal, navigate to [AWS/llama](AWS/llama), our slightly modified copy of the Meta LLaMA repo.
+
 * Request a LLaMA download link [here](https://ai.meta.com/resources/models-and-libraries/llama-downloads/).
 * Ensure you have `wget` and `md5sum` installed.
-* Inside the repo, run
-  ```
+* Inside AWS/llama, run
+  ```bash
   ./download.sh
   ```
   Note: for some reason I had to run
-  ```
+  ```bash
   . download.sh
   ```
   instead.
   
-* Paste the download link from the email you requested and select which model you wish to download.
+* Paste the download link from the email you requested and select which model you wish to download. For our purposes here, make sure it is one of the "chat" models.
 
-#### Create Docker image
+#### Build Docker image
 
-Todo.
+We can now build the Docker image.
+
+* Start the Docker daemon, by either:
+  * opening Docker Desktop.
+  * running `sudo systemctl start docker` in a Linux terminal.
+  * running `dockerd` or `sudo dockerd`.
+  See [here](https://docs.docker.com/config/daemon/start/) for more details.
+
+* Build the Docker image. In terminal, navigate to to the LLaMA folder containing the Dockerfile discussed above, and run
+    ```bash
+    docker build -t llama-image .
+    ```
+    where the string `llama-image` can be whatever name you like.
+
+    Note that this will take a while - ~600 seconds on my laptop.
+
+**Note:** as mentioned above, this repo contains some slightly modified LLaMA code. Here are the modifications:  
+  
+* [AWS/llama/custom_chat_completion.py](AWS/llama/custom_chat_completion.py) has been added to allow you to send LLaMA custom prompts as follows:
+    ```bash
+    torchrun --nproc_per_node 1 custom_chat_completion.py \
+      --ckpt_dir llama-2-7b-chat/ \
+      --tokenizer_path tokenizer.model \
+      --max_seq_len 512 --max_batch_size 6
+      --user_message "Tell me about Noteworthy, the LLM-based text editor."
+  ```
+  
+* [AWS/llama/Dockerfile](AWS/llama/Dockerfile) specifies how to build the container.
+  * To avoid incurring unnecessary AWS ECR expenses, we have removed as many files from the original LLaMA repo as possible. The Dockerfile copies all files from this folder, then removes the license (which we are required to host in the repo), and download.sh, neither of which are necessary to run the model.
+
+  * We also set the entrypoint of the model as the custom_chat_completion.py file defined above, so we can send prompts to our model.
+
+#### Running the model
+
+Once you have built the image, find it in the terminal and run:
+
+```bash
+docker run -it --name llama-container llama-image
+```
+where `llama-container` can be whatever name you like, and `llama-image` should match with the name you chose for the image above.
+
+    docker run -it --name your-container-name your-image-name --ckpt_dir your_checkpoint_dir --tokenizer_path your_tokenizer_path --user_message "Please help me with a coding question."
 
 ### AWS setup
 

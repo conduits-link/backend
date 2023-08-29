@@ -96,7 +96,8 @@ We can now build the Docker image.
   docker run -it --name llama-container llama-image \
   --ckpt_dir llama-2-7b/ \ # Specify the model version you downloaded here.
   --tokenizer_path tokenizer.model \
-  --max_seq_len 128 --max_batch_size 4 --user_message "Tell me about Noteworthy, the LLM-based text editor."
+  --max_seq_len 128 --max_batch_size 4 
+  --user_message "Tell me about Noteworthy, the LLM-based text editor."
   ```
 
 * When you're done, stop your container with:

@@ -2,7 +2,7 @@
 FROM python:3.8
 
 # Set the working directory in the container.
-WORKDIR /app
+WORKDIR /
 
 # Copy the model files and dependencies into the container.
 COPY . .
@@ -14,4 +14,4 @@ RUN pip install -r requirements.txt
 RUN rm LICENSE download.sh
 
 # Set the entrypoint command to run the main() function inside custom_chat_completion.py.
-ENTRYPOINT ["python", "custom_chat_completion.py"]
+ENTRYPOINT ["torchrun", "custom_chat_completion.py"]

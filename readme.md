@@ -4,9 +4,9 @@ Django, MySQL and AWS Backend for [Noteworthy](https://www.github.com/dan-smith-
 
 * See [noteworthy-frontend](https://github.com/jhels/noteworthy-frontend) for the associated frontend we're deploying.
 
-* See [docs/architecture.md](docs/architecture.md) for design decisions.
+* See [AWS/aws_readme.md](AWS/aws_readme.md) for details on how to deploy a LLaMA 2 model onto AWS using Docker and Terraform.
 
-* See [AWS/aws_readme.md](AWS/aws_readme.md) for details on how to deploy a LLaMA 2 model onto AWS using Terraform.
+* See [docs/architecture.md](docs/architecture.md) for design decisions.
 
 ## Get Started - Development
 

@@ -1,19 +1,9 @@
 from django.urls import path
-from . import views
-from django.conf.urls import include
+
+from .views import FileDetailView, FileCreateView, StoreView
 
 urlpatterns = [
-    path('', views.index, name='index'),
-
-    # Accounts
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('accounts/register/', views.register, name='register'),
-
-    # Files
-    path('files/', views.EditorFileListView.as_view(), name='files'),
-    path('file/<int:pk>', views.EditorFileDetailView.as_view(), name='file-detail'),
-
-    path('files/new/', views.new_file, name='new-file'),
-    path('file/<int:pk>/edit', views.edit_file, name='edit-file'),
-    path('file/<int:pk>/delete', views.delete_file, name='delete-file'),
+    path('files/<int:pk>/', FileDetailView.as_view(), name='file-detail'),
+    path('files/upload/', FileCreateView.as_view(), name='file-upload'),
+    path('store/', StoreView.as_view(), name='store-detail'),
 ]

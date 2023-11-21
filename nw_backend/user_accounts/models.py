@@ -8,10 +8,11 @@ class EditorFile(models.Model):
     title = models.CharField(max_length=50, help_text='Title of file')
 
     # 25000 chars ≈ 5000 words.
-    file_text = models.TextField(max_length=25000, help_text='Text stored in file')
+    body = models.TextField(max_length=25000, help_text='Text stored in file')
 
     author = models.CharField(max_length = 20, help_text='Username of file creator')
-    date_created = models.DateTimeField()
+    created = models.DateTimeField()
+    modified = models.DateTimeField(auto_now=True)
 
     class Meta:
         # Order files from most recent to oldest.

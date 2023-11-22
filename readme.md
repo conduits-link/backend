@@ -8,6 +8,13 @@ Django, MySQL and AWS Backend for [Noteworthy](https://www.github.com/dan-smith-
 
 * See [docs/architecture.md](docs/architecture.md) for design decisions.
 
+## Contents
+
+* [Frontend Text Editor Demo](#frontend-text-editor-demo)
+* [Get Started - Development](#get-started---development
+  * [Set up MySQL Database](#set-up-mysql-database)
+  * [Django and Server](#django-and-server)
+
 ## Frontend Text Editor Demo
 
 ### Edit mode
@@ -89,7 +96,7 @@ Well done! From this point on, we only need worry about Django and the code in t
     ```bash
     python venv path/to/your/venv
     source path/to/your/venv/bin/activate
-    pip install django mysqlclient 
+    pip install django mysqlclient djangorestframework
     ```
 
 * Migrate the models in [models.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/user_accounts/models.py) to our newly created `noteworthydb` database:

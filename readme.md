@@ -11,7 +11,7 @@ Django, MySQL and AWS Backend for [Noteworthy](https://www.github.com/dan-smith-
 ## Contents
 
 * [Frontend Text Editor Demo](#frontend-text-editor-demo)
-* [Get Started - Development](#get-started---development
+* [Get Started - Development](#get-started---development)
   * [Set up MySQL Database](#set-up-mysql-database)
   * [Django and Server](#django-and-server)
 

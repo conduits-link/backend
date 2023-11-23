@@ -8,7 +8,7 @@ class EditorFile(models.Model):
     title = models.CharField(max_length=50, help_text='Title of file')
 
     # 25000 chars ≈ 5000 words.
-    body = models.JSONField(help_text='Text stored in file')
+    body = models.JSONField(default=list, help_text='Text stored in file')
 
     author = models.CharField(max_length = 20, help_text='Username of file creator')
     created = models.DateTimeField()
@@ -16,7 +16,7 @@ class EditorFile(models.Model):
 
     class Meta:
         # Order files from most recent to oldest.
-        ordering = ['-date_created']
+        ordering = ['-created']
 
     def get_absolute_url(self):
         """Returns the URL to access a particular instance of EditorFile."""

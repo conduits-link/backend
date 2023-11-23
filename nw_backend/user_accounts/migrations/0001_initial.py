@@ -22,10 +22,10 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(help_text='Title of file', max_length=50)),
                 ('file_text', models.TextField(help_text='Text stored in file', max_length=25000)),
                 ('author', models.CharField(help_text='Username of file creator', max_length=20)),
-                ('date_created', models.DateTimeField()),
+                ('created', models.DateTimeField()),
             ],
             options={
-                'ordering': ['-date_created'],
+                'ordering': ['-created'],
             },
         ),
         migrations.CreateModel(

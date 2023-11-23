@@ -1,4 +1,4 @@
-from django.contrib.auth.models import EditorFile
+from .models import EditorFile
 from rest_framework import serializers
 
 class FileDetailSerializer(serializers.ModelSerializer):

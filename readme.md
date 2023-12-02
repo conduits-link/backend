@@ -96,6 +96,7 @@ Well done! From this point on, we only need worry about Django and the code in t
     ```bash
     python venv path/to/your/venv
     source path/to/your/venv/bin/activate
+    conda activate # if using conda
     pip install django mysqlclient djangorestframework
     ```
 

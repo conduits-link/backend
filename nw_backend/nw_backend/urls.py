@@ -19,10 +19,13 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Django Rest Framework
+    path('api-auth/', include('rest_framework.urls'))
 ]
 
 urlpatterns += [
     path('', include('user_accounts.urls')),
+    
 ]
 
 # Use static() to add URL mapping to serve static files during development (only)

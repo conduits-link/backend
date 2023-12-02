@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Our applications
     'user_accounts.apps.UserAccountsConfig',
+    # Django Rest Framework
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -135,3 +137,12 @@ LOGIN_REDIRECT_URL = '/'
 
 # Testing password reset
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Django Rest Framework settings
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}

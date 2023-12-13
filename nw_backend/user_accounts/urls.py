@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import DocsCreateRetrieveView, DocRetrieveUpdateDestroyView
+from .views import send_registration_email, UserRegistrationAPIView, UserLoginAPIView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView
 
 # Endpoints given in 
 # https://github.com/dan-smith-tech/noteworthy/blob/main/docs/api.md
@@ -11,9 +11,9 @@ urlpatterns = [
     # User authentication URLs #
     ############################
 
-    path('auth/register', something, name='register-email'),
-    path('auth/register/<int:pk>', something, name='register-account'),
-    path('auth/login', something, name='login'),
+    path('auth/register', send_registration_email, name='register-email'),
+    path('auth/register/<str:pk>', UserRegistrationAPIView.as_view(), name='register-account'),
+    path('auth/login', UserLoginAPIView.as_view(), name='login'),
 
     ############################
     # Document controller URLs #
@@ -24,6 +24,6 @@ urlpatterns = [
     #################
     # AI controller #
     #################   
-    path('generate/text', something, name='store-detail'), 
+    #path('generate/text', something, name='store-detail'), 
 
 ]

@@ -1,6 +1,10 @@
 from .models import EditorFile
 from rest_framework import serializers
 
+class UserAuthSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
 class FileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = EditorFile

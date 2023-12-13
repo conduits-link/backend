@@ -1,12 +1,97 @@
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 
-from .models import EditorFile
+from django.core.mail import send_mail
+from django.http import JsonResponse
+from django.urls import reverse
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth import authenticate, login
 
-from .serializers import FileDetailSerializer, FileCreateSerializer, FilePatchSerializer, FileListSerializer
+from .models import User, EditorFile
+
+from .serializers import UserAuthSerializer, FileDetailSerializer, FileCreateSerializer, FilePatchSerializer, FileListSerializer
+
+def send_registration_email(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+
+        # Generate UID as string
+        uid = urlsafe_base64_encode(force_bytes(email)).decode('utf-8')
+
+        # Create registration link with UID as string
+        registration_link = request.build_absolute_uri(
+            reverse('register_user', kwargs={'pk': uid})
+        )
+
+        # Send email
+        subject = 'Account Registration'
+        message = f'Click the following link to create your account: {registration_link}'
+        from_email = 'your_email@example.com'
+        recipient_list = [email]
+
+        send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+
+        return JsonResponse({'message': 'Email sent successfully'})
+    else:
+        return JsonResponse({'error': 'Invalid request method'})
+    
+class UserRegistrationAPIView(APIView):
+    def post(self, request, pk):
+        try:
+            # Decode the UID to get the email address
+            email = force_text(urlsafe_base64_decode(pk))
+
+            # Check if a user with the provided email already exists
+            existing_user = User.objects.filter(email=email).first()
+
+            if existing_user:
+                return Response({"detail": "Account already exists for this email."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Serialize and validate the incoming data
+            serializer = UserAuthSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            # Create a new user
+            user = User.objects.create_user(username=serializer.validated_data['username'],
+                                            email=email,
+                                            password=serializer.validated_data['password'])
+
+            # You can set additional user attributes if needed
+            # user.first_name = 'First'
+            # user.last_name = 'Last'
+            # user.save()
+
+            # Return a success response
+            return Response({"detail": "Account created successfully."}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            # Handle any exceptions or errors during account creation
+            return Response({"detail": f"Error creating account: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserLoginAPIView(APIView):
+    def post(self, request):
+        try:
+            # Serialize and validate the incoming login data
+            serializer = UserAuthSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            # Authenticate user
+            user = authenticate(request, username=serializer.validated_data['username'],
+                                password=serializer.validated_data['password'])
+
+            if user is not None:
+                # Log in the user
+                login(request, user)
+                return Response({"detail": "Login successful."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            # Handle any exceptions or errors during login
+            return Response({"detail": f"Error during login: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
     """

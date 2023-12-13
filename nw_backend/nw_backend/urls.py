@@ -17,12 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+# Administration pages
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Django Rest Framework
     path('api-auth/', include('rest_framework.urls'))
 ]
 
+# Retrieve URLs from user_accounts.
 urlpatterns += [
     path('', include('user_accounts.urls')),
     

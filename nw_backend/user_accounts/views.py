@@ -96,8 +96,8 @@ class UserLoginAPIView(APIView):
 class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
     """
     Handles requests for store/docs.
-    POST: Create a new document for the authenticated user.
     GET: Retrieve all docs for the authenticated user.
+    POST: Create a new document for the authenticated user.
     """
     queryset = EditorFile.objects.all()
     parser_classes = (MultiPartParser, FormParser)
@@ -153,6 +153,12 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = EditorFile.objects.all()
     serializer_class = FilePatchSerializer
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve the selected doc.
+        """
+        return self.retrieve(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         """

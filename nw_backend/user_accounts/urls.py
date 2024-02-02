@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import send_registration_email, UserRegistrationAPIView, UserLoginAPIView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView
+from .views import send_registration_email, UserRegistrationAPIView, UserLoginAPIView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, generate_text
 
 # Endpoints given in 
 # https://github.com/dan-smith-tech/noteworthy/blob/main/docs/api.md
@@ -24,6 +24,6 @@ urlpatterns = [
     #################
     # AI controller #
     #################   
-    #path('generate/text', something, name='store-detail'), 
+    path('generate/text', generate_text, name='store-detail'), 
 
 ]

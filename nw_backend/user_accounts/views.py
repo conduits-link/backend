@@ -14,7 +14,12 @@ from django.contrib.auth import authenticate, login
 
 from .models import User, EditorFile
 
-from .serializers import UserAuthSerializer, FileDetailSerializer, FileCreateSerializer, FilePatchSerializer, FileListSerializer
+from .serializers import UserAuthSerializer, FileCreateSerializer, FilePatchSerializer, FileListSerializer
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
 
 def send_registration_email(request):
     if request.method == 'POST':
@@ -174,3 +179,39 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             instance.delete()
         else:
             raise PermissionDenied("You do not have permission to delete this document.")
+
+
+@csrf_exempt  # This is used to allow cross-origin requests (for testing purposes)
+@require_POST # Ensure function only responds to HTTP POST requests
+def generate_text(request):
+    """
+    Handles endpoint for /generate/text : POST
+    Inferences a generative model to generate text, given a prompt.
+    """
+    try:
+        # Assuming your request data is in JSON format
+        data = json.loads(request.body.decode('utf-8'))
+
+        # Extract data from the request
+        prompt_name = data.get('promptName', '')
+        messages = data.get('messages', [])
+
+        # Perform inference with your generative model using prompt_name and messages
+
+        # Create a response JSON
+        response_data = {
+            "status": 200,  # Adjust the status code accordingly
+            "message": "Text generated successfully",
+            "data": {
+                "promptName": prompt_name,
+                "messages": messages
+            }
+        }
+        # TODO: We'll need to set this up to work with our LLM.
+        return JsonResponse(response_data, status=200)
+
+    except json.JSONDecodeError as e:
+        return JsonResponse({"error": "Invalid JSON format in the request"}, status=400)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

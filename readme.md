@@ -64,7 +64,7 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
        TO 'nw'@'localhost'
        WITH GRANT OPTION;
      
-     exit -- Log out of root.
+     exit; -- Log out of root.
      ```
     
   * The username and password are chosen here to match the Django [settings.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/nw_backend/settings.py) configuration – see the `DATABASE` variable on line 79. We can and should change these later.

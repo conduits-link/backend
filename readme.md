@@ -47,13 +47,13 @@ Responses to prompts for are collected underneath the node they were applied to.
 
 See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Getting Started docs, or follow the steps below.
 
-* First, install MySQL – see [here](https://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-installing) for download links and details.
+* First, install MySQL and set up your root account – see [here](https://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-installing) for download links and details.
 
 * Check your MySQL installation works properly by logging in as root. In your terminal, run:
   ```bash
   mysql -u root -p
   ```
-  and type in your root password.
+  and type in your root password, set in the step above.
 
 * Now you're logged into MySQL, create a new superuser account as follows:
      ```SQL

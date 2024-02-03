@@ -25,11 +25,11 @@ def send_registration_email(request):
         email = request.POST.get('email')
 
         # Generate UID as string
-        uid = urlsafe_base64_encode(force_bytes(email)).decode('utf-8')
+        uid = urlsafe_base64_encode(force_bytes(email))
 
         # Create registration link with UID as string
         registration_link = request.build_absolute_uri(
-            reverse('register_user', kwargs={'pk': uid})
+            reverse('register-account', kwargs={'pk': uid})
         )
 
         # Send email
@@ -39,12 +39,15 @@ def send_registration_email(request):
         recipient_list = [email]
 
         send_mail(subject, message, from_email, recipient_list, fail_silently=False)
-
+        
         return JsonResponse({'message': 'Email sent successfully'})
     else:
         return JsonResponse({'error': 'Invalid request method'})
     
 class UserRegistrationAPIView(APIView):
+    # Anyone with the URL can register.
+    permission_classes = []
+
     def post(self, request, pk):
         try:
             # Decode the UID to get the email address
@@ -60,20 +63,18 @@ class UserRegistrationAPIView(APIView):
             serializer = UserAuthSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
+
             # Create a new user
             user = User.objects.create_user(username=serializer.validated_data['username'],
                                             email=email,
                                             password=serializer.validated_data['password'])
 
-            # You can set additional user attributes if needed
-            # user.first_name = 'First'
-            # user.last_name = 'Last'
-            # user.save()
-
             # Return a success response
             return Response({"detail": "Account created successfully."}, status=status.HTTP_201_CREATED)
+        
         except Exception as e:
             # Handle any exceptions or errors during account creation
+            print(f"Error creating account: {str(e)}")
             return Response({"detail": f"Error creating account: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserLoginAPIView(APIView):

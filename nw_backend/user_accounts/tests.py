@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from .models import User
 
@@ -20,6 +21,10 @@ class RegistrationEmailTest(TestCase):
         self.assertEqual(response.json(), {'message': 'Email sent successfully'})
 
 class UserRegistrationAPIViewTest(TestCase):
+
+    # Resets the state of the client between tests
+    def setUp(self):
+        self.client = APIClient()
 
     # Create a registration link for a test email
     def get_register_link(self, email):
@@ -55,10 +60,36 @@ class UserRegistrationAPIViewTest(TestCase):
         response = self.client.post(registration_link,
             {'username': 'test_user', 'password': 'test_password'}
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('Account already exists for this email.', response.data['detail'])
 
         # Ensure that the existing user is not modified
         existing_user.refresh_from_db()
         self.assertEqual(existing_user.username, 'existing_user')  # Ensure the username remains the same
+
+class UserLoginAPIViewTest(TestCase):
+    # Resets client between tests and creates a new user.
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='test_user', password='test_password')
+
+    def test_user_login_successful(self):
+        # Send a POST request with valid login credentials
+        response = self.client.post(reverse('login'), {'username': 'test_user', 'password': 'test_password'})
+        
+        # Check if the response is successful (HTTP 200 OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check if the response includes the expected detail message
+        self.assertIn('Login successful.', response.data['detail'])
+
+    def test_user_login_invalid_credentials(self):
+        # Send a POST request with invalid login credentials
+        response = self.client.post(reverse('login'), {'username': 'test_user', 'password': 'wrong_password'})
+
+        # Check if the response status code is HTTP 401 Unauthorized
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Check if the response includes the expected detail message
+        self.assertIn('Invalid credentials.', response.data['detail'])

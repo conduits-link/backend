@@ -78,6 +78,9 @@ class UserRegistrationAPIView(APIView):
             return Response({"detail": f"Error creating account: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserLoginAPIView(APIView):
+    # Anyone with the URL can login.
+    permission_classes = []
+    
     def post(self, request):
         try:
             # Serialize and validate the incoming login data

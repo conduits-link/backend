@@ -11,7 +11,11 @@ class EditorFile(models.Model):
     body = models.JSONField(default=list, help_text='Text stored in file')
 
     author = models.CharField(max_length = 20, help_text='Username of file creator')
-    created = models.DateTimeField()
+
+    # Automatically set when file is made
+    created = models.DateTimeField(auto_now_add=True) 
+
+    # Automatically set when file is modified
     modified = models.DateTimeField(auto_now=True)
 
     class Meta:

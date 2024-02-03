@@ -86,6 +86,9 @@ DATABASES = {
         'PASSWORD': 'JnlezOy`nC411"I}4S`Z',
         'HOST'    : 'localhost',
         'PORT'    : '3306',
+        'TEST': {
+            'NAME': 'test_noteworthydb',
+        },
     }
 }
 
@@ -144,5 +147,5 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    ],
 }

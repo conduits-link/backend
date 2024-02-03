@@ -81,7 +81,7 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
   ```
   JnlezOy`nC411"I}4S`Z
   ```
-  - to log into your newly created superuser account.
+  \- to log into your newly created superuser account.
 
   Now you're inside MySQL, run:
   ```SQL

@@ -8,7 +8,7 @@ from rest_framework.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.urls import reverse
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth import authenticate, login
 
@@ -18,7 +18,6 @@ from .serializers import UserAuthSerializer, FileCreateSerializer, FilePatchSeri
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
 import json
 
 def send_registration_email(request):
@@ -49,7 +48,7 @@ class UserRegistrationAPIView(APIView):
     def post(self, request, pk):
         try:
             # Decode the UID to get the email address
-            email = force_text(urlsafe_base64_decode(pk))
+            email = force_str(urlsafe_base64_decode(pk))
 
             # Check if a user with the provided email already exists
             existing_user = User.objects.filter(email=email).first()
@@ -182,12 +181,14 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 
 @csrf_exempt  # This is used to allow cross-origin requests (for testing purposes)
-@require_POST # Ensure function only responds to HTTP POST requests
 def generate_text(request):
     """
     Handles endpoint for /generate/text : POST
     Inferences a generative model to generate text, given a prompt.
     """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'})
+    
     try:
         # Assuming your request data is in JSON format
         data = json.loads(request.body.decode('utf-8'))

@@ -55,7 +55,7 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
   ```
   and type in your root password, set in the step above.
 
-* Now you're logged into MySQL, create a new superuser account as follows:
+* Now you're logged into MySQL, set up a new superuser account as follows:
      ```SQL
      CREATE USER 'nw'@'localhost'            -- This is the username.
        IDENTIFIED BY 'JnlezOy`nC411"I}4S`Z'; -- This is the password.
@@ -63,6 +63,8 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
        ON *.*
        TO 'nw'@'localhost'
        WITH GRANT OPTION;
+
+     GRANT ALL PRIVILEGES ON test_noteworthydb.* TO 'nw'@'localhost'; -- Allows us to run Django tests later.
      
      exit; -- Log out of root.
      ```

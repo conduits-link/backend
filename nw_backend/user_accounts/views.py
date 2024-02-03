@@ -183,17 +183,18 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         """
         Perform the delete operation only if the requesting user is the owner of the document.
         """
-        if instance.user == self.request.user:
+
+        if instance.author == self.request.user.username:
             instance.delete()
         else:
             raise PermissionDenied("You do not have permission to delete this document.")
 
-
-@csrf_exempt  # This is used to allow cross-origin requests (for testing purposes)
+# Performs LLM inference on text provided.
+# TODO : We need to set this up with our LLM.
 def generate_text(request):
     """
     Handles endpoint for /generate/text : POST
-    Inferences a generative model to generate text, given a prompt.
+    requests a generative model to generate text, given a prompt.
     """
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method'})
@@ -206,7 +207,10 @@ def generate_text(request):
         prompt_name = data.get('promptName', '')
         messages = data.get('messages', [])
 
-        # Perform inference with your generative model using prompt_name and messages
+        role = messages[0].get("role")
+        content = messages[0].get("content")
+
+        # TODO: Perform inference with your generative model using prompt_name and messages
 
         # Create a response JSON
         response_data = {
@@ -217,7 +221,7 @@ def generate_text(request):
                 "messages": messages
             }
         }
-        # TODO: We'll need to set this up to work with our LLM.
+
         return JsonResponse(response_data, status=200)
 
     except json.JSONDecodeError as e:

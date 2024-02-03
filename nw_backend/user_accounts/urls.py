@@ -1,5 +1,4 @@
 from django.urls import path
-
 from .views import send_registration_email, UserRegistrationAPIView, UserLoginAPIView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, generate_text
 
 # Endpoints given in 
@@ -24,6 +23,6 @@ urlpatterns = [
     #################
     # AI controller #
     #################   
-    path('generate/text', generate_text, name='store-detail'), 
+    path('generate/text', generate_text, name='generate-text'), 
 
 ]

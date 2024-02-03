@@ -128,14 +128,19 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         Retrieve the queryset for the currently authenticated user's documents.
         """
         # Filter documents based on the currently authenticated user
-        return EditorFile.objects.filter(user=self.request.user)
+        return EditorFile.objects.filter(author=self.request.user)
 
     def get(self, request, *args, **kwargs):
         """
         Handle GET requests to retrieve documents for the currently authenticated user.
         """
-        # Call the list method to retrieve and return the documents
-        return self.list(request, *args, **kwargs)
+        # Retrieve the queryset for the currently authenticated user's documents
+        queryset = self.get_queryset()
+
+        # Serialize the queryset
+        serializer = FileListSerializer(queryset, many=True)
+
+        return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
         """
@@ -149,7 +154,7 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         Associate the created document with the currently authenticated user.
         """
         # Associate the document with the currently authenticated user
-        serializer.save(user=self.request.user)
+        serializer.save(author=self.request.user)
 
 class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """

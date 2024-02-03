@@ -13,7 +13,7 @@ class FileDetailSerializer(serializers.ModelSerializer):
 class FileCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = EditorFile
-        fields = ('_id', 'created', 'modified')    
+        fields = ('title', 'created', 'modified')    
 
 class FilePatchSerializer(serializers.ModelSerializer):
     class Meta:

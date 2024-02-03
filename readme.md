@@ -14,6 +14,7 @@ Django, MySQL and AWS Backend for [Noteworthy](https://www.github.com/dan-smith-
 * [Get Started - Development](#get-started---development)
   * [Set up MySQL Database](#set-up-mysql-database)
   * [Django and Server](#django-and-server)
+  * [Testing](#testing)
 
 ## Frontend Text Editor Demo
 
@@ -89,7 +90,7 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
  
 Well done! From this point on, we only need worry about Django and the code in this repo.
  
-### Django and Server
+### Django and Server Setup
 
 * Set up and activate a Python virtual environment, and install the necessary packages.
 
@@ -124,3 +125,11 @@ Well done! From this point on, we only need worry about Django and the code in t
  
 Great job! You're all ready to start development on the site.
     
+### Testing
+
+All features of the site should have associated test functions in `nw_backend/user_accounts/tests.py`.
+
+To run them, simply call:
+```
+python nw_backend/manage.py test user_accounts
+```

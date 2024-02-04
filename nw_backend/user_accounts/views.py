@@ -20,9 +20,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
-def send_registration_email(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
+class RegistrationEmailAPIView(APIView):
+    # Anyone with the URL can register.
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email')
 
         # Generate UID as string
         uid = urlsafe_base64_encode(force_bytes(email))
@@ -39,10 +42,11 @@ def send_registration_email(request):
         recipient_list = [email]
 
         send_mail(subject, message, from_email, recipient_list, fail_silently=False)
-        
-        return JsonResponse({'message': 'Email sent successfully'})
-    else:
-        return JsonResponse({'error': 'Invalid request method'})
+
+        return Response({'message': 'Email sent successfully'})
+
+    def get(self, request):
+        return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     
 class UserRegistrationAPIView(APIView):
     # Anyone with the URL can register.

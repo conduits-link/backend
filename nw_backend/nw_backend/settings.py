@@ -42,9 +42,14 @@ INSTALLED_APPS = [
     'user_accounts.apps.UserAccountsConfig',
     # Django Rest Framework
     'rest_framework',
+    # CORS - allows frontend and backend to communicate
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    # CORS - allows frontend and backend to communicate
+    'corsheaders.middleware.CorsMiddleware',
+    
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -52,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'nw_backend.urls'
@@ -130,6 +136,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -141,6 +148,7 @@ LOGIN_REDIRECT_URL = '/'
 # Testing password reset
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+
 # Django Rest Framework settings
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
@@ -149,3 +157,23 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
 }
+
+
+# CORS Headers settings
+# TODO - enable this only in Debug mode.
+
+CORS_ALLOWED_ORIGINS = [
+    # Allow local Next.js Noteworthy frontend URL
+    "http://localhost:3000",  
+    "http://127.0.0.1:3000",  
+]
+
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = [
+    *default_headers,
+    "access-control-allow-credentials",
+    "content-type"
+]
+
+# Allow credentials (cookies, authorization headers, etc.) to be included in cross-origin requests
+CORS_ALLOW_CREDENTIALS = True

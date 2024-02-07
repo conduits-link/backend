@@ -83,6 +83,17 @@ class UserRegistrationAPIViewTest(APITestCase):
         self.assertIsNotNone(user)
         self.assertEqual(user.username, 'test_user')  # Assuming your serializer assigns a default username
 
+    def test_invalid_registration_link(self):
+        registration_link = self.get_register_link("invalid_email")
+
+        # Try to register with the existing user's email
+        response = self.client.post(registration_link,
+            {'username': 'test_user', 'password': 'test_password'}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('Invalid registration link.', response.data['detail'])
+
     def test_user_registration_existing_user(self):
         # Create an existing user for testing
         email = 'test_user@example.com'

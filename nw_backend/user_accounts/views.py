@@ -6,6 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 
 from django.core.mail import send_mail
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
@@ -20,12 +22,30 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+# Check if input is a valid email address.
+def is_valid_email(email):
+    try:
+        validate_email(email)
+        return True
+    except ValidationError:
+        return False
+    
+# Check if a user with the provided email already exists.
+def is_existing_user(email):
+    return User.objects.filter(email=email).first()
+
 class RegistrationEmailAPIView(APIView):
     # Anyone with the URL can register.
     permission_classes = []
 
     def post(self, request):
         email = request.data.get('email')
+
+        if not is_valid_email(email):
+            return Response({'error': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if is_existing_user(email):
+            return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Generate UID as string
         uid = urlsafe_base64_encode(force_bytes(email))
@@ -57,10 +77,10 @@ class UserRegistrationAPIView(APIView):
             # Decode the UID to get the email address
             email = force_str(urlsafe_base64_decode(pk))
 
-            # Check if a user with the provided email already exists
-            existing_user = User.objects.filter(email=email).first()
+            if not is_valid_email(email):
+                return Response({"detail": "Invalid registration link."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if existing_user:
+            if is_existing_user(email):
                 return Response({"detail": "Account already exists for this email."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Serialize and validate the incoming data

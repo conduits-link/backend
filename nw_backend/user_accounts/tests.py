@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 import json
 
 from .models import User, EditorFile
@@ -11,7 +11,8 @@ from .models import User, EditorFile
 
 # Tests the registration email view executes correctly.
 # Doesn't test if the email sends correctly.
-class RegistrationEmailTest(TestCase):
+class RegistrationEmailTest(APITestCase):        
+
     def test_send_registration_email(self):
 
         # Create a fake request with POST data
@@ -22,7 +23,38 @@ class RegistrationEmailTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'message': 'Email sent successfully'})
 
-class UserRegistrationAPIViewTest(TestCase):
+    def test_invalid_registration_email_address(self):
+
+        # Create a fake request with POST data, using invalid email.
+        data = {'email': 'invalid_email'}
+        response = self.client.post(reverse('register-email'), data)
+
+        # Check if the response status code is HTTP 401 Unauthorized
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Check if the response includes the expected detail message
+        self.assertIn('Invalid email address.', response.data['detail'])
+    
+    def test_registration_email_already_registered(self):
+
+        # Create fake account
+        email = 'test_user@example.com'
+        self.client = APIClient()
+        self.user = User.objects.create_user(email=email, username='test')
+
+        # Create a fake request with POST data, 
+        # using the email of the account above.
+        data = {'email': email}
+        response = self.client.post(reverse('register-email'), data)
+
+        # Check if the response status code is HTTP 401 Unauthorized
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Check if the response includes the expected detail message
+        self.assertIn('Account already registered with this email address.', response.data['detail'])
+
+
+class UserRegistrationAPIViewTest(APITestCase):
 
     # Resets the state of the client between tests
     def setUp(self):
@@ -54,7 +86,7 @@ class UserRegistrationAPIViewTest(TestCase):
     def test_user_registration_existing_user(self):
         # Create an existing user for testing
         email = 'test_user@example.com'
-        existing_user = User.objects.create_user(username='existing_user', email=email, password='password123')
+        existing_user = User.objects.create_user(username='existing_user', email=email)
 
         registration_link = self.get_register_link(email)
 
@@ -63,14 +95,14 @@ class UserRegistrationAPIViewTest(TestCase):
             {'username': 'test_user', 'password': 'test_password'}
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('Account already exists for this email.', response.data['detail'])
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('Account already registered with this email address.', response.data['detail'])
 
         # Ensure that the existing user is not modified
         existing_user.refresh_from_db()
         self.assertEqual(existing_user.username, 'existing_user')  # Ensure the username remains the same
 
-class UserLoginAPIViewTest(TestCase):
+class UserLoginAPIViewTest(APITestCase):
     # Resets client between tests and creates a new user.
     def setUp(self):
         self.client = APIClient()
@@ -96,7 +128,7 @@ class UserLoginAPIViewTest(TestCase):
         # Check if the response includes the expected detail message
         self.assertIn('Invalid credentials.', response.data['detail'])
 
-class DocsCreateRetrieveViewTest(TestCase):
+class DocsCreateRetrieveViewTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username='test_user', password='test_password')
@@ -140,7 +172,7 @@ class DocsCreateRetrieveViewTest(TestCase):
         # Check if the response contains an empty list
         self.assertEqual(response.data, [])
 
-class DocRetrieveUpdateDestroyViewTest(TestCase):
+class DocRetrieveUpdateDestroyViewTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username='test_user', password='test_password')
@@ -199,7 +231,7 @@ class DocRetrieveUpdateDestroyViewTest(TestCase):
         self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
 
 # TODO: Once calling an LLM has actually been implemented in the corresponding view, update this test accordingly.
-class GenerateTextTest(TestCase):
+class GenerateTextTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
 

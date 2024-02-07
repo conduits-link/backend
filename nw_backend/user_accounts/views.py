@@ -42,10 +42,10 @@ class RegistrationEmailAPIView(APIView):
         email = request.data.get('email')
 
         if not is_valid_email(email):
-            return Response({'error': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Invalid email address.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         if is_existing_user(email):
-            return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_401_UNAUTHORIZEDT)
+            return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Generate UID as string
         uid = urlsafe_base64_encode(force_bytes(email))
@@ -81,7 +81,7 @@ class UserRegistrationAPIView(APIView):
                 return Response({"detail": "Invalid registration link."}, status=status.HTTP_401_UNAUTHORIZED)
 
             if is_existing_user(email):
-                return Response({"detail": "Account already exists for this email."}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_401_UNAUTHORIZED)
 
             # Serialize and validate the incoming data
             serializer = UserAuthSerializer(data=request.data)

@@ -21,8 +21,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 # Administration pages
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Django Rest Framework
-    path('api-auth/', include('rest_framework.urls'))
     # Django Rest Framework - Simple JWT
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

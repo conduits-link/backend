@@ -1,0 +1,1 @@
+web: gunicorn nw_backend.wsgi

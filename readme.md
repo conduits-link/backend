@@ -1,6 +1,6 @@
-# Noteworthy Backend
+# Conduit Backend
 
-Django, MySQL and AWS Backend for [Noteworthy](https://www.github.com/dan-smith-tech/noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
+Django, MySQL and AWS Backend for [Conduit](https://github.com/dan-smith-tech/conduit) (formerly Noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
 
 * See [AWS/aws_readme.md](AWS/aws_readme.md) for details on how to deploy a LLaMA 2 model onto AWS using Docker and Terraform.
 

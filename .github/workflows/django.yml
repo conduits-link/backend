@@ -28,8 +28,3 @@ jobs:
     - name: Run Tests
       run: |
         python nw_backend/manage.py test
-    
-    - name: Run Coverage
-      run: |
-        coverage run --source='.' nw_backend/manage.py test
-        coverage report

@@ -29,9 +29,9 @@ jobs:
         sudo /etc/init.d/mysql start
     - name: Set up MySQL
       run: |
-        mysql -u root -e "CREATE USER 'nw'@'localhost' IDENTIFIED BY 'JnlezOy`nC411"I}4S`Z';"
+        mysql -u root -e "CREATE USER 'nw'@'localhost' IDENTIFIED BY 'JnlezOy`nC411\"I}4S`Z';"
         mysql -u root -e "GRANT ALL ON *.* TO 'nw'@'localhost' WITH GRANT OPTION;"
-        mysql -u root -e "GRANT ALL  ON test_noteworthydb.* TO nw'@'localhost';"
+        mysql -u root -e "GRANT ALL ON test_noteworthydb.* TO nw'@'localhost';"
     - name: Run Tests
       run: |
         python manage.py test

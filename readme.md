@@ -59,7 +59,7 @@ See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Ge
 * Now you're logged into MySQL, set up a new superuser account as follows:
      ```SQL
      CREATE USER 'nw'@'localhost'            -- This is the username.
-       IDENTIFIED BY 'JnlezOy`nC411I}4S`Z'; -- This is the password.
+       IDENTIFIED BY 'JnlezOynC411I4SZ'; -- This is the password.
      GRANT ALL
        ON *.*
        TO 'nw'@'localhost'

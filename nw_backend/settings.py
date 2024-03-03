@@ -89,7 +89,7 @@ DATABASES = {
         'ENGINE'  : 'django.db.backends.mysql',
         'NAME'    : 'noteworthydb',
         'USER'    : 'nw',
-        'PASSWORD': 'JnlezOy`nC411I}4S`Z',
+        'PASSWORD': 'JnlezOynC411I4SZ',
         'HOST'    : '127.0.0.1',
         'PORT'    : '3306',
         'TEST': {

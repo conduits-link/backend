@@ -1,1 +1,1 @@
-web: gunicorn --chdir nw_backend nw_backend.wsgi
+web: gunicorn noteworthy-backend.nw_backend.wsgi

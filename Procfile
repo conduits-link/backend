@@ -1,1 +1,2 @@
-web: gunicorn noteworthy-backend.nw_backend.wsgi
+web: pwd
+web: gunicorn ./nw_backend.wsgi

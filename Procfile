@@ -1,2 +1,1 @@
-web: pwd
-web: gunicorn ./nw_backend.wsgi
+web: gunicorn --chdir nw_backend nw_backend.wsgi

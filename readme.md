@@ -108,20 +108,20 @@ Well done! From this point on, we only need worry about Django and the code in t
 * Migrate the models in [models.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/user_accounts/models.py) to our newly created `noteworthydb` database:
 
     ```bash
-    python nw_backend/manage.py makemigrations
-    python nw_backend/manage.py migrate
+    python manage.py makemigrations
+    python manage.py migrate
     ```
   * You'll need to run these commands again if you change any of the models in `models.py`.
  
 * Make an admin account for the app:
   ```bash
-  python nw_backend/manage.py createsuperuser
+  python manage.py createsuperuser
   ```
   and enter a username, email and password.
 
 * Run the development web server:
     ```bash
-    python nw_backend/manage.py runserver
+    python manage.py runserver
     ```
     and visit the address it gives you - probably something like `http://127.0.0.1:8000/`.
 
@@ -135,5 +135,5 @@ All features of the site should have associated test functions in `nw_backend/us
 
 To run them, simply call:
 ```
-python nw_backend/manage.py test user_accounts
+python manage.py test
 ```

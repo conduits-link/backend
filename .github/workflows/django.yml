@@ -31,7 +31,8 @@ jobs:
       - name: Retrieve DATABASE_URL secret
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: echo "DATABASE_URL is $DATABASE_URL"
+        run: |
+          echo "DATABASE_URL is $DATABASE_URL"
 
       - name: Set DATABASE_URL in Django settings
         run: echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_WORKSPACE/.env

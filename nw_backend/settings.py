@@ -91,14 +91,6 @@ environ.Env.read_env()
 
 DATABASES = {
     'default': env.db('DATABASE_URL'),
-    # local db
-    # 'default': {
-    #     'ENGINE'  : 'django.db.backends.mysql',
-    #     'NAME'    : 'noteworthydb',
-    #     'USER'    : 'nw',
-    #     'PASSWORD': 'JnlezOynC411I4SZ',
-    #     'HOST'    : '127.0.0.1',
-    #     'PORT'    : '3306',
     'TEST': {
         'NAME': 'test_noteworthydb',
     },

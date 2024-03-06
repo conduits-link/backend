@@ -25,12 +25,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Set up MySQL
-      run: |
-        sudo /etc/init.d/mysql start
-        mysql -u root -proot -e "CREATE USER 'nw'@'localhost' IDENTIFIED BY 'JnlezOynC411I4SZ';"
-        mysql -u root -proot -e "GRANT ALL ON *.* TO 'nw'@'localhost' WITH GRANT OPTION;"
-        mysql -u root -proot -e "GRANT ALL ON test_noteworthydb.* TO 'nw'@'localhost';"
     - name: Run Tests
       run: |
         python manage.py test

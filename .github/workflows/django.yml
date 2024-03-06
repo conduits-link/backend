@@ -32,7 +32,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          echo "DATABASE_URL is $DATABASE_URL"
+          echo "DATABASE_URL is $DATABASE_URL test" 
 
       - name: Set DATABASE_URL in Django settings
         run: echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_WORKSPACE/.env

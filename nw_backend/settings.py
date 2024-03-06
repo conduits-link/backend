@@ -99,10 +99,9 @@ DATABASES = {
     #     'PASSWORD': 'JnlezOynC411I4SZ',
     #     'HOST'    : '127.0.0.1',
     #     'PORT'    : '3306',
-        'TEST': {
-            'NAME': 'test_noteworthydb',
-        },
-    }
+    'TEST': {
+        'NAME': 'test_noteworthydb',
+    },
 }
 
 AUTH_USER_MODEL = 'user_accounts.User'

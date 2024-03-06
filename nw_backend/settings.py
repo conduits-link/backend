@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -84,14 +85,20 @@ WSGI_APPLICATION = 'nw_backend.wsgi.application'
 # Database - using MySQL. Currently using temporary account details.
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# Load operating system environment variables
+env = environ.Env()
+environ.Env.read_env()
+
 DATABASES = {
-    'default': {
-        'ENGINE'  : 'django.db.backends.mysql',
-        'NAME'    : 'noteworthydb',
-        'USER'    : 'nw',
-        'PASSWORD': 'JnlezOynC411I4SZ',
-        'HOST'    : '127.0.0.1',
-        'PORT'    : '3306',
+    'default': env.db('DATABASE_URL'),
+    # local db
+    # 'default': {
+    #     'ENGINE'  : 'django.db.backends.mysql',
+    #     'NAME'    : 'noteworthydb',
+    #     'USER'    : 'nw',
+    #     'PASSWORD': 'JnlezOynC411I4SZ',
+    #     'HOST'    : '127.0.0.1',
+    #     'PORT'    : '3306',
         'TEST': {
             'NAME': 'test_noteworthydb',
         },

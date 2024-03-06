@@ -29,7 +29,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['api.conduits.link', 'conduits-link-6109ece64156.herokuapp.com']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -90,7 +89,7 @@ env = environ.Env()
 environ.Env.read_env()
 
 DATABASES = {
-    'default': env.db('DATABASE_URL'),
+    'default': env.db('DATABASE_URL', default='sqlite:////tmp/my-tmp-sqlite.db'),
     'TEST': {
         'NAME': 'test_noteworthydb',
     },

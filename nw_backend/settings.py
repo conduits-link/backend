@@ -172,11 +172,19 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",  
 ]
 
-from corsheaders.defaults import default_headers
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+
 CORS_ALLOW_HEADERS = [
-    *default_headers,
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
     "access-control-allow-credentials",
-    "content-type"
 ]
 
 # Allow credentials (cookies, authorization headers, etc.) to be included in cross-origin requests

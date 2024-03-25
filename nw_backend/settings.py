@@ -164,7 +164,9 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     'http://www.conduits.link',
-    'https://www.conduits.link',
+    'https://www.conduits.link',    
+    'http://api.conduits.link',
+    'https://api.conduits.link',
     # Allow local Next.js Noteworthy frontend URL
     "http://localhost:3000",  
     "http://127.0.0.1:3000",  

@@ -89,7 +89,7 @@ env = environ.Env()
 environ.Env.read_env()
 
 DATABASES = {
-    'default': env.db('DATABASE_URL', default='sqlite:////tmp/my-tmp-sqlite.db'),
+    'default': env.db('CLEARDB_DATABASE_URL', default='sqlite:////tmp/dummy-db-for-cicd-tests.db'),
     'TEST': {
         'NAME': 'test_noteworthydb',
     },

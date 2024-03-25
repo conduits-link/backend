@@ -22,6 +22,26 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+import os
+import requests
+from dotenv import load_dotenv
+
+def send_mailgun_email(recipient_emails, subject, message):
+    """
+    recipient_emails is a list of emails.
+    """
+
+    mailgun_domain = os.getenv("MAILGUN_DOMAIN")
+    site_domain = "conduits.link"
+
+    return requests.post(
+        "https://api.mailgun.net/v3/" + mailgun_domain + "/messages",
+        auth=("api", os.getenv("MAILGUN_API_KEY")),
+        data={"from": "Conduit <admin@" + site_domain + ">",
+            "to": recipient_emails,
+            "subject": subject,
+            "html": message})
+
 # Check if input is a valid email address.
 def is_valid_email(email):
     try:
@@ -61,8 +81,10 @@ class RegistrationEmailAPIView(APIView):
         from_email = 'your_email@example.com'
         recipient_list = [email]
 
-        send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+        email_response = send_mailgun_email(recipient_list, subject, message)
 
+        if email_response.status_code != 200:
+            return Response({"message": "Internal server error occurred while sending email"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': 'Email sent successfully'})
 
     def get(self, request):

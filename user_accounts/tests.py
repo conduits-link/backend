@@ -19,9 +19,9 @@ class RegistrationEmailTest(APITestCase):
         data = {'email': 'test@example.com'}
         response = self.client.post(reverse('register-email'), data)
 
-        # Check if the response is successful
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'message': 'Email sent successfully'})
+        # Confirm the response is unsuccessful (test@example.com 
+        # is not approved as a recipient by MailGun).
+        self.assertEqual(response.status_code, 500)
 
     def test_invalid_registration_email_address(self):
 

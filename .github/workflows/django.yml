@@ -28,11 +28,11 @@ jobs:
 
     - name: Set up environment secrets
       env:
-        DATABASE_URL:    ${{ secrets.DATABASE_URL }}
-        MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
-        MAILGUN_DOMAIN:  ${{ secrets.MAILGUN_DOMAIN }}
+        CLEARDB_DATABASE_URL: ${{ secrets.CLEARDB_DATABASE_URL }}
+        MAILGUN_API_KEY:      ${{ secrets.MAILGUN_API_KEY }}
+        MAILGUN_DOMAIN:       ${{ secrets.MAILGUN_DOMAIN }}
       run: |
-        echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
+        echo "CLEARDB_DATABASE_URL=$CLEARDB_DATABASE_URL" >> $GITHUB_ENV
         echo "MAILGUN_API_KEY=$MAILGUN_API_KEY" >> $GITHUB_ENV
         echo "MAILGUN_DOMAIN=$MAILGUN_DOMAIN" >> $GITHUB_ENV
         

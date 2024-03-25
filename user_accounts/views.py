@@ -78,7 +78,6 @@ class RegistrationEmailAPIView(APIView):
         # Send email
         subject = 'Account Registration'
         message = f'Click the following link to create your account: {registration_link}'
-        from_email = 'your_email@example.com'
         recipient_list = [email]
 
         email_response = send_mailgun_email(recipient_list, subject, message)

@@ -5,3 +5,5 @@ djangorestframework-simplejwt
 mysqlclient
 django-environ
 gunicorn
+requests
+python-dotenv

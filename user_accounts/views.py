@@ -3,11 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
@@ -57,6 +56,25 @@ def is_valid_email(email):
 # Check if a user with the provided email already exists.
 def is_existing_user(email):
     return User.objects.filter(email=email).first()
+
+def verify_jwt_token(request):
+    """
+    Verify the JWT token in the request.
+
+    Args:
+        request: The request object.
+
+    Returns:
+        User object if the token is valid, None otherwise.
+    """
+    print(request)
+    try:
+        # Attempt to authenticate the request using JWT token
+        user, _ = JWTAuthentication().authenticate(request)
+        return user
+    except AuthenticationFailed:
+        # Token authentication failed
+        return None
 
 class RegistrationEmailAPIView(APIView):
     # Anyone with the URL can register.
@@ -139,9 +157,19 @@ class UserLoginAPIView(APIView):
                                 password=serializer.validated_data['password'])
 
             if user is not None:
-                # Log in the user
-                token = AccessToken.for_user(user)
-                return Response({"detail": "Login successful.", 'token': str(token)}, status=status.HTTP_200_OK)
+                # Generate JWT token
+                refresh = RefreshToken.for_user(user)
+                token = str(refresh.access_token)
+
+                # Set JWT token as a cookie
+                response_data = {'detail': 'Login successful.'}
+                response = Response(response_data)
+
+                # Set JWT token as a cookie
+                response.set_cookie(key='jwt', value=token, httponly=True, samesite='Strict')
+
+                return response
+
             else:
                 return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
@@ -182,8 +210,15 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         """
         Handle GET requests to retrieve documents for the currently authenticated user.
         """
+
+        user = verify_jwt_token(request)
+
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+        
         # Retrieve the queryset for the currently authenticated user's documents
-        queryset = self.get_queryset()
+        queryset = EditorFile.objects.filter(author=user)
 
         # Serialize the queryset
         serializer = FileListSerializer(queryset, many=True)
@@ -194,6 +229,13 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         """
         Handle POST requests to create a new document for the currently authenticated user.
         """
+        # Verify JWT token
+        user = verify_jwt_token(request)
+        
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=401)
+
         # Call the create method to create and return a new document
         return self.create(request, *args, **kwargs)
 
@@ -201,8 +243,15 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         """
         Associate the created document with the currently authenticated user.
         """
+        # Verify JWT token
+        user = verify_jwt_token(self.request)
+        
+        if user is None:
+            # Token authentication failed
+            raise PermissionDenied("You are not authenticated")
+
         # Associate the document with the currently authenticated user
-        serializer.save(author=self.request.user)
+        serializer.save(author=user)
 
 class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -220,20 +269,40 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         """
         Retrieve the selected doc.
         """
+        # Verify JWT token
+        user = verify_jwt_token(request)
+        
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=401)
+
         return self.retrieve(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         """
         Perform the update operation and associate the updated document with the currently authenticated user.
         """
+        # Verify JWT token
+        user = verify_jwt_token(self.request)
+        
+        if user is None:
+            # Token authentication failed
+            raise PermissionDenied("You are not authenticated")
+
         serializer.save(user=self.request.user)
 
     def perform_destroy(self, instance):
         """
         Perform the delete operation only if the requesting user is the owner of the document.
         """
+        # Verify JWT token
+        user = verify_jwt_token(self.request)
+        
+        if user is None:
+            # Token authentication failed
+            raise PermissionDenied("You are not authenticated")
 
-        if instance.author == self.request.user.username:
+        if instance.author == user.username:
             instance.delete()
         else:
             raise PermissionDenied("You do not have permission to delete this document.")

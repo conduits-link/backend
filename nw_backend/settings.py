@@ -85,15 +85,23 @@ WSGI_APPLICATION = 'nw_backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Load operating system environment variables
-env = environ.Env()
-environ.Env.read_env()
+from dotenv import load_dotenv
+import sys
+import dj_database_url
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("CLEARDB_DATABASE_URL")
 
 DATABASES = {
-    'default': env.db('CLEARDB_DATABASE_URL', default='sqlite:////tmp/dummy-db-for-cicd-tests.db'),
-    'TEST': {
-        'NAME': 'test_noteworthydb',
-    },
+    'default':  dj_database_url.config(default=DATABASE_URL)
 }
+
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
 
 AUTH_USER_MODEL = 'user_accounts.User'
 

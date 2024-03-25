@@ -7,3 +7,4 @@ django-environ
 gunicorn
 requests
 python-dotenv
+dj_database_url

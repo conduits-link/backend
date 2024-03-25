@@ -26,6 +26,8 @@ import os
 import requests
 from dotenv import load_dotenv
 
+load_dotenv()
+
 def send_mailgun_email(recipient_emails, subject, message):
     """
     recipient_emails is a list of emails.

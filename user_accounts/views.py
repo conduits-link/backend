@@ -73,13 +73,11 @@ class RegistrationEmailAPIView(APIView):
         uid = urlsafe_base64_encode(force_bytes(email))
 
         # Create registration link with UID as string
-        registration_link = request.build_absolute_uri(
-            reverse('register-account', kwargs={'pk': uid})
-        )
+        registration_link = "https://www.conduits.link/register/" + uid
 
         # Send email
         subject = 'Account Registration'
-        message = f'Click the following link to create your account: {registration_link}'
+        message = f'Click the following link to create your account:\n\n<a href="{registration_link}">{registration_link}</a>'
         recipient_list = [email]
 
         email_response = send_mailgun_email(recipient_list, subject, message)

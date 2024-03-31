@@ -1,6 +1,6 @@
 # Conduit Backend
 
-Django, MySQL and AWS Backend for [Conduit](https://github.com/dan-smith-tech/conduit) (formerly Noteworthy) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
+Django, MySQL and AWS Backend for [Conduit](https://github.com/conduits-link/core) – an intuitive, productivity-enhancing, labour-reducing text editor built around Large Language Models and other AI tooling.
 
 * See [AWS/aws_readme.md](AWS/aws_readme.md) for details on how to deploy a LLaMA 2 model onto AWS using Docker and Terraform.
 
@@ -8,39 +8,10 @@ Django, MySQL and AWS Backend for [Conduit](https://github.com/dan-smith-tech/co
 
 ## Contents
 
-* [Frontend Text Editor Demo](#frontend-text-editor-demo)
 * [Get Started - Development](#get-started---development)
   * [Set up MySQL Database](#set-up-mysql-database)
   * [Django and Server](#django-and-server-setup)
   * [Testing](#testing)
-
-## Frontend Text Editor Demo
-
-### Edit mode
-
-Edit mode allows users to edit the document node and text content.
-
-![Edit mode screenshot](/public/demos/screenshot-mode-edit.png "Edit mode")
-
-### View mode
-
-View mode allows users to view their document without any obstructions or accidental edits.
-
-![View mode screenshot](/public/demos/screenshot-mode-view.png "View mode")
-
-### Prompt menu
-
-There is a prompt menu associated with each node, that allows users to interact with an LLM via preset prompts.
-
-![Prompt menu screenshot](/public/demos/screenshot-prompt-menu.png "Prompt menu")
-
-### Prompt responses
-
-Responses to prompts for are collected underneath the node they were applied to.
-
-![Single prompt response screenshot](/public/demos/screenshot-prompt-response-single.png "Single prompt response")
-
-![Multiple prompt responses screenshot](/public/demos/screenshot-prompt-response-multiple.png "Multiple prompt responses")
 
 ## Get Started - Development
 

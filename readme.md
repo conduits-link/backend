@@ -4,8 +4,6 @@ Django, MySQL and AWS Backend for [Conduit](https://github.com/conduits-link/cor
 
 * See [AWS/aws_readme.md](AWS/aws_readme.md) for details on how to deploy a LLaMA 2 model onto AWS using Docker and Terraform.
 
-* See [docs/architecture.md](docs/architecture.md) for design.
-
 ## Contents
 
 * [Get Started - Development](#get-started---development)

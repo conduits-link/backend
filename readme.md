@@ -6,66 +6,7 @@ Django, MySQL and AWS Backend for [Conduit](https://github.com/conduits-link/cor
 
 * See [docs/architecture.md](docs/architecture.md) for design.
 
-## Contents
-
-* [Get Started - Development](#get-started---development)
-  * [Set up MySQL Database](#set-up-mysql-database)
-  * [Django and Server](#django-and-server-setup)
-  * [Testing](#testing)
-
-## Get Started - Development
-
-### Set up MySQL Database
-
-See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Getting Started docs, or follow the steps below.
-
-* First, install MySQL and set up your root account – see [here](https://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-installing) for download links and details.
-
-* Check your MySQL installation works properly by logging in as root. In your terminal, run:
-  ```bash
-  mysql -u root -p
-  ```
-  and type in your root password, set in the step above.
-
-* Now you're logged into MySQL, set up a new superuser account as follows:
-     ```SQL
-     CREATE USER 'nw'@'localhost'            -- This is the username.
-       IDENTIFIED BY 'JnlezOynC411I4SZ'; -- This is the password.
-     GRANT ALL
-       ON *.*
-       TO 'nw'@'localhost'
-       WITH GRANT OPTION;
-
-     GRANT ALL PRIVILEGES ON test_noteworthydb.* TO 'nw'@'localhost'; -- Allows us to run Django tests later.
-     
-     exit; -- Log out of root.
-     ```
-    
-  * The username and password are chosen here to match the Django [settings.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/nw_backend/settings.py) configuration – see the `DATABASE` variable on line 79. We can and should change these later.
-
-  * See [here](https://dev.mysql.com/doc/refman/8.0/en/creating-accounts.html#creating-accounts-granting-privileges) for more details on creating a superuser.
-
-* Back in the terminal, run:
-  ```bash
-  mysql -u nw -p
-
-  # nw is the username you set above.
-  ```
-  and enter the password above -
-  ```
-  JnlezOy`nC411"I}4S`Z
-  ```
-  \- to log into your newly created superuser account.
-
-  Now you're inside MySQL, run:
-  ```SQL
-  CREATE DATABASE noteworthydb;
-  ```
-  * This name is also specified in the [settings.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/nw_backend/settings.py) `DATABASE` variable on line 79.
- 
-Well done! From this point on, we only need worry about Django and the code in this repo.
- 
-### Django and Server Setup
+## Django and Server Setup
 
 * Set up and activate a Python virtual environment, and install the necessary packages.
 
@@ -76,7 +17,7 @@ Well done! From this point on, we only need worry about Django and the code in t
     pip install -r requirements.txt
     ```
 
-* Migrate the models in [models.py](https://github.com/jhels/noteworthy-backend/blob/main/nw_backend/user_accounts/models.py) to our newly created `noteworthydb` database:
+* Migrate the models in [models.py](/user_accounts/models.py) to our newly created `conduitdb` database:
 
     ```bash
     python manage.py makemigrations
@@ -100,9 +41,9 @@ Well done! From this point on, we only need worry about Django and the code in t
  
 Great job! You're all ready to start development on the site.
     
-### Testing
+## Testing
 
-All features of the site should have associated test functions in `nw_backend/user_accounts/tests.py`.
+All features of the site should have associated test functions in `user_accounts/tests.py`.
 
 To run them, simply call:
 ```

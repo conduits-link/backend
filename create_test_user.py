@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nw_backend.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'conduit_backend.settings')
 django.setup()
 
 from user_accounts.models import User

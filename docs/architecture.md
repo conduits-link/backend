@@ -23,4 +23,4 @@ In future we may add social media-type functionality, e.g. profile pictures, fri
 
 ## Endpoints
 
-See [Noteworthy/docs/api.md](https://github.com/dan-smith-tech/noteworthy/blob/main/docs/api.md) for an exhaustive list.
+See [Conduit/docs/api.md](https://github.com/dan-smith-tech/conduit/blob/main/docs/api.md) for an exhaustive list.

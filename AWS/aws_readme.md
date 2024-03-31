@@ -67,7 +67,7 @@ We can now build the Docker image.
       --ckpt_dir llama-2-7b-chat/ \ # Specify the model version you downloaded here.
       --tokenizer_path tokenizer.model \
       --max_seq_len 512 --max_batch_size 6
-      --user_message "Tell me about Noteworthy, the LLM-based text editor."
+      --user_message "Tell me about Conduit, the LLM-based text editor."
     ```
   
 * [AWS/llama/Dockerfile](AWS/llama/Dockerfile) specifies how to build the container.
@@ -97,7 +97,7 @@ We can now build the Docker image.
   --ckpt_dir llama-2-7b/ \ # Specify the model version you downloaded here.
   --tokenizer_path tokenizer.model \
   --max_seq_len 128 --max_batch_size 4 
-  --user_message "Tell me about Noteworthy, the LLM-based text editor."
+  --user_message "Tell me about Conduit, the LLM-based text editor."
   ```
 
 * When you're done, stop your container with:

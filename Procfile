@@ -1,1 +1,1 @@
-web: gunicorn nw_backend.wsgi
+web: gunicorn conduit_backend.wsgi

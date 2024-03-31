@@ -8,7 +8,7 @@
 #    --ckpt_dir llama-2-7b-chat/ \
 #    --tokenizer_path tokenizer.model \
 #    --max_seq_len 512 --max_batch_size 6
-#    --user_message "Tell me about Noteworthy, the LLM-based text editor."
+#    --user_message "Tell me about Conduit, the LLM-based text editor."
 
 def main(
     user_message: str,  # New argument for the user-provided message

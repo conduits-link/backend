@@ -1,4 +1,4 @@
-project_name = "noteworthy-llm"
+project_name = "conduit-llm"
 region = "eu-west-1"
 
 # AWS Free Tier allows use of of ml.m4.xlarge or ml.m5.xlarge only (both 16GB memory).

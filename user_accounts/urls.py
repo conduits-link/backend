@@ -2,7 +2,7 @@ from django.urls import path
 from .views import RegistrationEmailAPIView, UserRegistrationAPIView, UserLoginAPIView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, generate_text
 
 # Endpoints given in 
-# https://github.com/dan-smith-tech/noteworthy/blob/main/docs/api.md
+# https://github.com/dan-smith-tech/conduit/blob/main/docs/api.md
 
 urlpatterns = [
 

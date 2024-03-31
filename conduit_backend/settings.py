@@ -99,6 +99,19 @@ DATABASES = {
     'default':  dj_database_url.config(default=DATABASE_URL)
 }
 
+# MySQL local database for testing
+# DATABASES['default'] = {
+#         'ENGINE'  : 'django.db.backends.mysql',
+#         'NAME'    : 'conduitdb',
+#         'USER'    : 'nw',
+#         'PASSWORD': 'JnlezOy`nC411"I}4S`Z',
+#         'HOST'    : 'localhost',
+#         'PORT'    : '3306',
+#         'TEST': {
+#             'NAME': 'test_conduitdb',
+#         },
+#     }
+
 if 'test' in sys.argv:
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',

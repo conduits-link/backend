@@ -200,8 +200,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://api.conduits.link',
     'https://api.conduits.link',
     # TESTING: Allow local Next.js Conduit frontend URL
-    # "http://localhost:3000",  
-    # "http://127.0.0.1:3000",  
+    "http://localhost:3000",  
+    "http://127.0.0.1:3000",  
 ]
 
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]

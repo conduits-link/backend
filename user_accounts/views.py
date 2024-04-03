@@ -166,7 +166,7 @@ class UserLoginAPIView(APIView):
                 response = Response(response_data)
 
                 # Set JWT token as a cookie
-                response.set_cookie(key='jwt', value=token, httponly=True, samesite='Strict')
+                response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', domain=os.getenv("DOMAIN"), secure=True, path="/")
 
                 return response
 

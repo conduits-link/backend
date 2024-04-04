@@ -223,52 +223,13 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         # Filter documents based on the currently authenticated user
         return EditorFile.objects.filter(author=self.request.user)
 
-    def get(self, request, *args, **kwargs):
-        """
-        Handle GET requests to retrieve documents for the currently authenticated user.
-        """
-
-        user = verify_jwt_token(request)
-
-        if user is None:
-            # Token authentication failed
-            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        # Retrieve the queryset for the currently authenticated user's documents
-        queryset = EditorFile.objects.filter(author=user)
-
-        # Serialize the queryset
-        serializer = FileListSerializer(queryset, many=True)
-
-        return Response(serializer.data)
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handle POST requests to create a new document for the currently authenticated user.
-        """
-        # Verify JWT token
-        user = verify_jwt_token(request)
-        
-        if user is None:
-            # Token authentication failed
-            return Response({"error": "Unauthorized"}, status=401)
-
-        # Call the create method to create and return a new document
-        return self.create(request, *args, **kwargs)
-
     def perform_create(self, serializer):
         """
         Associate the created document with the currently authenticated user.
         """
-        # Verify JWT token
-        user = verify_jwt_token(self.request)
-        
-        if user is None:
-            # Token authentication failed
-            raise PermissionDenied("You are not authenticated")
-
         # Associate the document with the currently authenticated user
-        serializer.save(author=user)
+        serializer.save(author=self.request.user)
+
 
 class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """

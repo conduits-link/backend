@@ -28,9 +28,15 @@ import requests
 from dotenv import load_dotenv
 
 import logging
+# To use:
+# logger = logging.getLogger('defaultlogger')
+# logger.info('This is a simple log message')
+
 
 
 load_dotenv()
+
+
 
 def send_mailgun_email(recipient_emails, subject, message):
     """
@@ -73,6 +79,10 @@ def verify_jwt_token(request):
         User object if the token is valid, None otherwise.
     """
     print(request)
+
+    logger = logging.getLogger('defaultlogger')
+    logger.info('Log JWT verification attempt')
+    logger.info(request)
     try:
         # Attempt to authenticate the request using JWT token
         user, _ = JWTAuthentication().authenticate(request)
@@ -153,8 +163,6 @@ class UserLoginAPIView(APIView):
     
     def post(self, request):
 
-        logger = logging.getLogger('defaultlogger')
-        logger.info('This is a simple log message')
 
         try:
             # Serialize and validate the incoming login data

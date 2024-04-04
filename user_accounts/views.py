@@ -194,7 +194,7 @@ class UserLoginAPIView(APIView):
             # Handle any exceptions or errors during login
             return Response({"detail": f"Error during login: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class DocsCreateRetrieveView(generics.ListCreateAPIView):
+class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
     """
     Handles requests for store/docs.
     GET: Retrieve all docs for the authenticated user.
@@ -204,7 +204,18 @@ class DocsCreateRetrieveView(generics.ListCreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
-    serializer_class = FileListSerializer
+
+    def get_serializer_class(self):
+        """
+        Return the serializer class based on the request method.
+        """
+        if self.request.method == 'POST':
+            return FileCreateSerializer
+        elif self.request.method == 'GET':
+            return FileListSerializer
+        else:
+            # Use default serializer class for other request methods
+            return super().get_serializer_class()
 
     def get_queryset(self):
         """
@@ -213,12 +224,52 @@ class DocsCreateRetrieveView(generics.ListCreateAPIView):
         # Filter documents based on the currently authenticated user
         return EditorFile.objects.filter(author=self.request.user)
 
+    def get(self, request, *args, **kwargs):
+        """
+        Handle GET requests to retrieve documents for the currently authenticated user.
+        """
+
+        user = verify_jwt_token(request)
+
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Retrieve the queryset for the currently authenticated user's documents
+        queryset = EditorFile.objects.filter(author=user)
+
+        # Serialize the queryset
+        serializer = FileListSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST requests to create a new document for the currently authenticated user.
+        """
+        # Verify JWT token
+        user = verify_jwt_token(request)
+        
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=401)
+
+        # Call the create method to create and return a new document
+        return self.create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """
         Associate the created document with the currently authenticated user.
         """
+        # Verify JWT token
+        user = verify_jwt_token(self.request)
+        
+        if user is None:
+            # Token authentication failed
+            raise PermissionDenied("You are not authenticated")
+
         # Associate the document with the currently authenticated user
-        serializer.save(author=self.request.user)
+        serializer.save(author=user)
 
 
 

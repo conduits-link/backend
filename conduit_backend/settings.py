@@ -248,7 +248,7 @@ LOGGING = {
         }
     },
     'loggers': {
-        'testlogger': {
+        'defaultlogger': {
             'handlers': ['console'],
             'level': 'INFO',
         }

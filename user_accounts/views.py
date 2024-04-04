@@ -153,9 +153,9 @@ class UserLoginAPIView(APIView):
     
     def post(self, request):
 
-        logger = logging.getLogger('testlogger')
+        logger = logging.getLogger('defaultlogger')
         logger.info('This is a simple log message')
-        
+
         try:
             # Serialize and validate the incoming login data
             serializer = UserAuthSerializer(data=request.data)

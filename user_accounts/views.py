@@ -70,15 +70,9 @@ def verify_jwt_token(request):
         User object if the token is valid, None otherwise.
     """
     print(request)
-
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.debug("JWT cookie: ")
-    logger.debug(request.COOKIES)
-    logger.debug(request.COOKIES.get('jwt'))
     try:
         # Attempt to authenticate the request using JWT token
-        user, _ = JWTAuthentication().authenticate(request.COOKIES.get('jwt'))
+        user, _ = JWTAuthentication().authenticate(request)
         return user
     except AuthenticationFailed:
         # Token authentication failed

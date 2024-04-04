@@ -57,6 +57,8 @@ def is_valid_email(email):
 def is_existing_user(email):
     return User.objects.filter(email=email).first()
 
+import logging
+
 def verify_jwt_token(request):
     """
     Verify the JWT token in the request.
@@ -68,7 +70,9 @@ def verify_jwt_token(request):
         User object if the token is valid, None otherwise.
     """
     print(request)
-    print(request.COOKIES)
+
+    logger = logging.getLogger(__name__)
+    logger.info("JWT cookie: " + request.COOKIES.get('jwt'))
     try:
         # Attempt to authenticate the request using JWT token
         user, _ = JWTAuthentication().authenticate(request)

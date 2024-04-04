@@ -27,6 +27,9 @@ import os
 import requests
 from dotenv import load_dotenv
 
+import logging
+
+
 load_dotenv()
 
 def send_mailgun_email(recipient_emails, subject, message):
@@ -149,6 +152,10 @@ class UserLoginAPIView(APIView):
     permission_classes = []
     
     def post(self, request):
+
+        logger = logging.getLogger('testlogger')
+        logger.info('This is a simple log message')
+        
         try:
             # Serialize and validate the incoming login data
             serializer = UserAuthSerializer(data=request.data)

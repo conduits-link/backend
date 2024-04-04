@@ -46,7 +46,8 @@ def send_mailgun_email(recipient_emails, subject, message):
     mailgun_domain = os.getenv("MAILGUN_DOMAIN")
     site_domain = "conduits.link"
 
-    return requests.post(
+    if mailgun_domain is not None:
+        return requests.post(
         "https://api.mailgun.net/v3/" + mailgun_domain + "/messages",
         auth=("api", os.getenv("MAILGUN_API_KEY")),
         data={"from": "Conduit <admin@" + site_domain + ">",
@@ -117,7 +118,7 @@ class RegistrationEmailAPIView(APIView):
 
         email_response = send_mailgun_email(recipient_list, subject, message)
 
-        if email_response.status_code != 200:
+        if email_response is None or email_response.status_code != 200:
             return Response({"message": "Internal server error occurred while sending email"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': 'Email sent successfully'})
 
@@ -229,6 +230,41 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         """
         # Associate the document with the currently authenticated user
         serializer.save(author=self.request.user)
+
+
+    def get(self, request, *args, **kwargs):
+        """
+        Handle GET requests to retrieve documents for the currently authenticated user.
+        """
+
+        user = verify_jwt_token(request)
+
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Retrieve the queryset for the currently authenticated user's documents
+        queryset = EditorFile.objects.filter(author=user)
+
+        # Serialize the queryset
+        serializer = FileListSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST requests to create a new document for the currently authenticated user.
+        """
+        # Verify JWT token
+        user = verify_jwt_token(request)
+        
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=401)
+
+        # Call the create method to create and return a new document
+        return self.create(request, *args, **kwargs)
+
 
 
 class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):

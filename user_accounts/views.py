@@ -78,7 +78,7 @@ def verify_jwt_token(request):
     logger.debug(request.COOKIES.get('jwt'))
     try:
         # Attempt to authenticate the request using JWT token
-        user, _ = JWTAuthentication().authenticate(request)
+        user, _ = JWTAuthentication().authenticate(request.COOKIES.get('jwt'))
         return user
     except AuthenticationFailed:
         # Token authentication failed

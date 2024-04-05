@@ -33,10 +33,7 @@ import logging
 # logger.info('This is a simple log message')
 
 
-
 load_dotenv()
-
-
 
 def send_mailgun_email(recipient_emails, subject, message):
     """
@@ -68,7 +65,6 @@ def is_existing_user(email):
     return User.objects.filter(email=email).first()
 
 
-
 def verify_jwt_token(request):
     """
     Verify the JWT token in the request.
@@ -89,9 +85,6 @@ def verify_jwt_token(request):
         return None
 
 class RegistrationEmailAPIView(APIView):
-    # Anyone with the URL can register.
-    permission_classes = []
-
     def post(self, request):
         email = request.data.get('email')
 
@@ -122,9 +115,6 @@ class RegistrationEmailAPIView(APIView):
         return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     
 class UserRegistrationAPIView(APIView):
-    # Anyone with the URL can register.
-    permission_classes = []
-
     def post(self, request, pk):
         try:
             # Decode the UID to get the email address
@@ -155,11 +145,8 @@ class UserRegistrationAPIView(APIView):
             return Response({"detail": f"Error creating account: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserLoginAPIView(APIView):
-    # Anyone with the URL can login.
-    permission_classes = []
-    
+   
     def post(self, request):
-
 
         try:
             # Serialize and validate the incoming login data
@@ -201,8 +188,6 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
     """
     queryset = EditorFile.objects.all()
     parser_classes = (MultiPartParser, FormParser)
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
 
     def get_serializer_class(self):
         """
@@ -281,8 +266,6 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = EditorFile.objects.all()
     serializer_class = FilePatchSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
 
     def get(self, request, *args, **kwargs):
         """

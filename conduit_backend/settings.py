@@ -26,7 +26,13 @@ SECRET_KEY = 'django-insecure-*7gc0m5jzyi)0mx(@s_nep+8^!!b&w0=(sn845b!5#s9!go#lk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['api.conduits.link', 'conduits-link-6109ece64156.herokuapp.com']
+ALLOWED_HOSTS = [
+    'api.conduits.link', 
+    'conduits-link-6109ece64156.herokuapp.com',
+
+    # For testing.
+    "localhost",  
+]
 
 # Application definition
 
@@ -44,8 +50,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     # CORS - allows frontend and backend to communicate
     'corsheaders',
-    # JWT Auth
-    'oauth2_provider',
 ]
 
 MIDDLEWARE = [
@@ -178,7 +182,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
 

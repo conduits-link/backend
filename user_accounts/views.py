@@ -79,11 +79,7 @@ def verify_jwt_token(request):
     Returns:
         User object if the token is valid, None otherwise.
     """
-    print(request)
 
-    logger = logging.getLogger('defaultlogger')
-    logger.info('Log JWT verification attempt')
-    logger.info(request)
     try:
         # Attempt to authenticate the request using JWT token
         user, _ = JWTAuthentication().authenticate(request)

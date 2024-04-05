@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django.core.validators import validate_email
@@ -175,16 +175,19 @@ class UserLoginAPIView(APIView):
                                 password=serializer.validated_data['password'])
 
             if user is not None:
-                # Generate JWT token
+                # Generate JWT tokens
+                access  = AccessToken.for_user(user)
                 refresh = RefreshToken.for_user(user)
-                token = str(refresh.access_token)
 
                 # Set JWT token as a cookie
                 response_data = {'detail': 'Login successful.'}
                 response = Response(response_data)
 
                 # Set JWT token as a cookie
-                response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', domain=os.getenv("DOMAIN"), secure=True, path="/")
+                response.set_cookie(key='access_token', value=str(access), httponly=True, samesite='None', domain=os.getenv("DOMAIN"), secure=True, path="/")
+
+                # Set refresh token as a cookie
+                response.set_cookie(key='refresh_token', value=str(refresh), httponly=True, samesite='None', domain=os.getenv("DOMAIN"), secure=True, path="/")
 
                 return response
 

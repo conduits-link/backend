@@ -156,6 +156,7 @@ class DocsCreateRetrieveViewTest(APITestCase):
     def test_get_docs_list(self):
         # Create a document associated with the authenticated user
         EditorFile.objects.create(author=self.username, title='Test Document', body='Lorem Ipsum')
+        EditorFile.objects.create(author=self.username, title='Test Document 2', body='Lorem Ipsum')
 
         # Send a GET request to retrieve the list of documents
         response = self.client.get(reverse('create-view-docs'))
@@ -163,9 +164,30 @@ class DocsCreateRetrieveViewTest(APITestCase):
         # Check if the response is successful (HTTP 200 OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Check if the serializer used for the response is the correct one
-        self.assertIsInstance(response.data, list)
-        self.assertEqual(response.data[0]['title'], 'Test Document')
+        # Check if the response data has the expected structure
+        self.assertIsInstance(response.data, dict)
+        self.assertIn('files', response.data)
+        files = response.data['files']
+        self.assertIsInstance(files, list)
+
+        # Check the structure of each file in the 'files' list
+        for file_data in files:
+            self.assertIsInstance(file_data, dict)
+            self.assertIn('_id', file_data)
+            self.assertIsInstance(file_data['_id'], str)
+            self.assertIn('title', file_data)
+            self.assertIsInstance(file_data['title'], str)
+            self.assertIn('body', file_data)
+            self.assertIsInstance(file_data['body'], str)  
+            self.assertIn('created', file_data)
+            self.assertIsInstance(file_data['created'], str)  
+            self.assertIn('modified', file_data)
+            self.assertIsInstance(file_data['modified'], str)  
+
+        # Most recently created document should be listed first.
+        self.assertEqual(files[0]['title'], 'Test Document 2')
+
+        self.assertEqual(files[1]['title'], 'Test Document')
 
     def test_post_create_new_doc(self):
         # Data for creating a new document
@@ -189,7 +211,7 @@ class DocsCreateRetrieveViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check if the response contains an empty list
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['files'], [])
 
 
 class DocRetrieveUpdateDestroyViewTest(APITestCase):

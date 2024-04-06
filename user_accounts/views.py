@@ -229,12 +229,7 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         Handle GET requests to retrieve documents for the currently authenticated user.
         """
 
-        logger = logging.getLogger('defaultlogger')
-
         user = decode_jwt_token(request)
-
-        logger.info('User:')
-        logger.info(user)
 
         if user is None:
             # Token authentication failed
@@ -243,20 +238,12 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         # Retrieve the queryset for the currently authenticated user's documents
         queryset = EditorFile.objects.filter(author=user)
 
-        logger.info('Queryset:')
-        logger.info(queryset)
 
         # Serialize the queryset
         serializer = FileListSerializer(queryset, many=True)
 
-        logger.info('Serializer:')
-        logger.info(serializer)
-
-
-        logger.info('serializer.data:')
-        logger.info(serializer.data)
-
-        return Response(serializer.data)
+        # Return the serialized data in the desired format
+        return Response({"files": serializer.data})
 
     def post(self, request, *args, **kwargs):
         """

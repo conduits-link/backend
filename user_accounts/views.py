@@ -97,7 +97,8 @@ def decode_jwt_token(request):
 
 
     logger = logging.getLogger('defaultlogger')
-    logger.info('Cookies: ' + request.COOKIES)
+    logger.info('Cookies: ')
+    logger.info(request.COOKIES)
 
     if token:
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])

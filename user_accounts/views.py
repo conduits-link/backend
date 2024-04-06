@@ -82,7 +82,7 @@ def encode_jwt_token(response, username, expiry_length=datetime.timedelta(second
         value=str(encoded_jwt), 
         httponly=True, 
         samesite='None', 
-        domain=os.getenv("SITE_DOMAIN"), 
+        domain='.conduits.link', 
         secure=True, path="/"
     )
 

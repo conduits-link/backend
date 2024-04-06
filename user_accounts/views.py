@@ -108,12 +108,6 @@ def decode_jwt_token(request):
 
     if token:
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])
-
-        logger.info('decoded:')
-        logger.info(decoded_token)
-
-        logger.info('username:')
-        logger.info(decoded_token['username'])
         return decoded_token['username']
     
     return None
@@ -244,7 +238,7 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         logger = logging.getLogger('defaultlogger')
         logger.info('Get log')
         logger.info('user:')
-        logger = logging.getLogger(user)
+        logger.info(user)
 
 
         if user is None:
@@ -257,6 +251,12 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
 
         # Serialize the queryset
         serializer = FileListSerializer(queryset, many=True)
+        logger.info("serializer:")
+        logger.info(serializer)
+
+        logger.info("serializer.data:")
+        logger.info(serializer.data)
+    
 
         # Return the serialized data in the desired format
         return Response({"files": serializer.data})

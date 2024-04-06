@@ -31,13 +31,10 @@ jobs:
         DATABASE_URL:     ${{ secrets.DATABASE_URL }}
         MAILGUN_API_KEY:  ${{ secrets.MAILGUN_API_KEY }}
         MAILGUN_DOMAIN:   ${{ secrets.MAILGUN_DOMAIN }}
-        SITE_DOMAIN:      ${{ vars.SITE_DOMAIN }}
       run: |
         echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
         echo "MAILGUN_API_KEY=$MAILGUN_API_KEY" >> $GITHUB_ENV
         echo "MAILGUN_DOMAIN=$MAILGUN_DOMAIN" >> $GITHUB_ENV
-        echo "SITE_DOMAIN=$SITE_DOMAIN" >> $GITHUB_ENV
-
         
     - name: Run Tests
       run: |

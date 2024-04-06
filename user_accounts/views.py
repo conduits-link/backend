@@ -108,6 +108,8 @@ def decode_jwt_token(request):
     logger.info(request.COOKIES)
     logger.info("Domain:")
     logger.info(os.getenv("SITE_DOMAIN"))
+    logger.info("Domain:")
+
 
     if token:
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])

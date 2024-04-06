@@ -77,7 +77,14 @@ def encode_jwt_token(response, username, expiry_length=datetime.timedelta(second
     encoded_jwt = jwt.encode({"username": username, "exp": datetime.datetime.now(tz=datetime.timezone.utc) + expiry_length}, key, algorithm="HS256")
 
     # Set JWT token as a cookie
-    response.set_cookie(key='JWT', value=str(encoded_jwt), httponly=True, samesite='None', domain=os.getenv("SITE_DOMAIN"), secure=True, path="/")
+    response.set_cookie(
+        key='JWT', 
+        value=str(encoded_jwt), 
+        httponly=True, 
+        samesite='None', 
+        domain=os.getenv("SITE_DOMAIN"), 
+        secure=True, path="/"
+    )
 
     return response
 
@@ -99,6 +106,8 @@ def decode_jwt_token(request):
     logger = logging.getLogger('defaultlogger')
     logger.info('Cookies: ')
     logger.info(request.COOKIES)
+    os.getenv("Domain:")
+    logger.info(os.getenv("SITE_DOMAIN"))
 
     if token:
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])

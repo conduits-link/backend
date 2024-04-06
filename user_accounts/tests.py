@@ -247,24 +247,25 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         # Check if the document has been deleted
         self.assertFalse(EditorFile.objects.filter(pk=self.doc.pk).exists())
 
-    # def test_delete_selected_doc_permission_denied(self):
-    #     # Create a new user
-    #     another_user = User.objects.create_user(username='another_user', password='another_password')
+    def test_delete_selected_doc_permission_denied(self):
+        # Create a new user
+        another_username = 'another_user'
+        another_user = User.objects.create_user(username=another_username, password='another_password')
 
-    #     # Generate a new JWT token for the new user
-    #     another_token = AccessToken.for_user(another_user)
+        # Generate a new JWT token for the new user
+        another_token = generate_jwt_token(another_username)
 
-    #     # Include the token in the client's request headers
-    #     self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {another_token}')
+        # Include the token in the client's request headers
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {another_token}')
 
-    #     # Send a DELETE request to delete the selected document, but it should fail due to permission denied
-    #     response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
+        # Send a DELETE request to delete the selected document, but it should fail due to permission denied
+        response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
 
-    #     # Check if the response is a permission denied error (HTTP 403 Forbidden)
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # Check if the response is a permission denied error (HTTP 403 Forbidden)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    #     # Check if the document still exists
-    #     self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
+        # Check if the document still exists
+        self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
 
 # TODO: Once calling an LLM has actually been implemented in the corresponding view, update this test accordingly.
 class GenerateTextTest(APITestCase):

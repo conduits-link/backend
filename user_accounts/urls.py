@@ -1,15 +1,10 @@
 from django.urls import path
 from .views import RegistrationEmailAPIView, UserRegistrationAPIView, UserLoginAPIView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, generate_text
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Endpoints given in 
 # https://github.com/dan-smith-tech/conduit/blob/main/docs/api.md
 
 urlpatterns = [
-
-    # SimpleJWT URLs.
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     ############################
     # User authentication URLs #

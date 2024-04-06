@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'user_accounts.apps.UserAccountsConfig',
     # Django Rest Framework
     'rest_framework',
-    'rest_framework_simplejwt',
     # CORS - allows frontend and backend to communicate
     'corsheaders',
 ]
@@ -182,16 +181,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny'
     ]
 }
-
-SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'USER_ID_FIELD': 'email',
-    'SIGNING_KEY': SECRET_KEY,
-    'ALGORITHM': 'HS256',
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-}
-
 
 # CORS Headers settings
 

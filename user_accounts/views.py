@@ -92,7 +92,12 @@ def decode_jwt_token(request):
         User object if the token is valid, None otherwise.
     """
 
+
     token = request.COOKIES.get('JWT')
+
+
+    logger = logging.getLogger('defaultlogger')
+    logger.info('Token: ' + token)
 
     if token:
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])

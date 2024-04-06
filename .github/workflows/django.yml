@@ -36,6 +36,11 @@ jobs:
         echo "MAILGUN_API_KEY=$MAILGUN_API_KEY" >> $GITHUB_ENV
         echo "MAILGUN_DOMAIN=$MAILGUN_DOMAIN" >> $GITHUB_ENV
         
+    - name: Database migration
+      run: |
+        python manage.py makemigrations
+        python manage.py migrate
+
     - name: Run Tests
       run: |
         python manage.py test

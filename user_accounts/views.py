@@ -106,7 +106,7 @@ def decode_jwt_token(request):
     logger = logging.getLogger('defaultlogger')
     logger.info('Cookies: ')
     logger.info(request.COOKIES)
-    os.getenv("Domain:")
+    logger.info(os.getenv("Domain:"))
     logger.info(os.getenv("SITE_DOMAIN"))
 
     if token:

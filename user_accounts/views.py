@@ -100,7 +100,6 @@ def decode_jwt_token(request):
         User object if the token is valid, None otherwise.
     """
 
-
     token = request.COOKIES.get('jwt')
 
     if token:
@@ -237,8 +236,6 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         logger.info('User:')
         logger.info(user)
 
-
-
         if user is None:
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -246,8 +243,18 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         # Retrieve the queryset for the currently authenticated user's documents
         queryset = EditorFile.objects.filter(author=user)
 
+        logger.info('Queryset:')
+        logger.info(queryset)
+
         # Serialize the queryset
         serializer = FileListSerializer(queryset, many=True)
+
+        logger.info('Serializer:')
+        logger.info(serializer)
+
+
+        logger.info('serializer.data:')
+        logger.info(serializer.data)
 
         return Response(serializer.data)
 

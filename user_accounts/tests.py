@@ -199,7 +199,7 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         self.user = User.objects.create_user(username=self.username, password='test_password')
 
         # Include the token in the client's request headers
-        self.client.cookies = SimpleCookie({"JWT": generate_jwt_token(self.username)})
+        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
 
 
         # Create a test document associated with the user
@@ -246,7 +246,7 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         another_username = 'another_user'
         another_user = User.objects.create_user(username=another_username, password='another_password')
 
-        self.client.cookies = SimpleCookie({"JWT": generate_jwt_token(another_username)})
+        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(another_username)})
 
         # Send a DELETE request to delete the selected document, but it should fail due to permission denied
         response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))

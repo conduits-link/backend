@@ -102,10 +102,19 @@ def decode_jwt_token(request):
 
     token = request.COOKIES.get('jwt')
 
+    logger = logging.getLogger('defaultlogger')
+    logger.info('token:')
+    logger.info(token)
+
     if token:
+        logger.info('decoded:')
+        logger.info(decoded_token)
+        logger.info('username:')
+        logger.info(decoded_token['username'])
+
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])
         return decoded_token['username']
-        
+    
     return None
 
 class RegistrationEmailAPIView(APIView):

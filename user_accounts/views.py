@@ -103,10 +103,6 @@ def decode_jwt_token(request):
 
     token = request.COOKIES.get('jwt')
 
-    logger = logging.getLogger('defaultlogger')
-    logger.info('request.COOKIES:')
-    logger.info(request.COOKIES)
-
     if token:
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])
         return decoded_token['username']
@@ -234,7 +230,14 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         Handle GET requests to retrieve documents for the currently authenticated user.
         """
 
+        logger = logging.getLogger('defaultlogger')
+
         user = decode_jwt_token(request)
+
+        logger.info('User:')
+        logger.info(user)
+
+
 
         if user is None:
             # Token authentication failed

@@ -223,6 +223,10 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
 
         user = decode_jwt_token(request)
 
+        logger = logging.getLogger('defaultlogger')
+        logger.info('Here is a logging message.')
+        logger.info(user)
+
         if user is None:
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -241,7 +245,6 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         """
         # Decode JWT token
         user = decode_jwt_token(request)
-
         
         if user is None:
             # Token authentication failed

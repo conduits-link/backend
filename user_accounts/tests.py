@@ -151,7 +151,7 @@ class DocsCreateRetrieveViewTest(APITestCase):
 
         self.user = User.objects.create_user(username=self.username, password='test_password')
 
-        self.client.cookies = SimpleCookie({"JWT": generate_jwt_token(self.username)})
+        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
 
     def test_get_docs_list(self):
         # Create a document associated with the authenticated user

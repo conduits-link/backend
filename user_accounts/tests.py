@@ -4,115 +4,117 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-from rest_framework_simplejwt.tokens import AccessToken
-import json
+
+from .views import generate_jwt_token
 
 from .models import User, EditorFile
 
+import json
 
-# # Tests the registration email view executes correctly.
-# # Doesn't test if the email sends correctly.
-# class RegistrationEmailTest(APITestCase):        
 
-#     def test_send_registration_email(self):
+# Tests the registration email view executes correctly.
+# Doesn't test if the email sends correctly.
+class RegistrationEmailTest(APITestCase):        
 
-#         # Create a fake request with POST data
-#         data = {'email': 'test@example.com'}
-#         response = self.client.post(reverse('register-email'), data)
+    def test_send_registration_email(self):
 
-#         # Confirm the response is unsuccessful (test@example.com 
-#         # is not approved as a recipient by MailGun).
-#         self.assertEqual(response.status_code, 500)
+        # Create a fake request with POST data
+        data = {'email': 'test@example.com'}
+        response = self.client.post(reverse('register-email'), data)
 
-#     def test_invalid_registration_email_address(self):
+        # Confirm the response is unsuccessful (test@example.com 
+        # is not approved as a recipient by MailGun).
+        self.assertEqual(response.status_code, 500)
 
-#         # Create a fake request with POST data, using invalid email.
-#         data = {'email': 'invalid_email'}
-#         response = self.client.post(reverse('register-email'), data)
+    def test_invalid_registration_email_address(self):
 
-#         # Check if the response status code is HTTP 401 Unauthorized
-#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        # Create a fake request with POST data, using invalid email.
+        data = {'email': 'invalid_email'}
+        response = self.client.post(reverse('register-email'), data)
 
-#         # Check if the response includes the expected detail message
-#         self.assertIn('Invalid email address.', response.data['detail'])
+        # Check if the response status code is HTTP 401 Unauthorized
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Check if the response includes the expected detail message
+        self.assertIn('Invalid email address.', response.data['detail'])
     
-#     def test_registration_email_already_registered(self):
+    def test_registration_email_already_registered(self):
 
-#         # Create fake account
-#         email = 'test_user@example.com'
-#         self.client = APIClient()
-#         self.user = User.objects.create_user(email=email, username='test')
+        # Create fake account
+        email = 'test_user@example.com'
+        self.client = APIClient()
+        self.user = User.objects.create_user(email=email, username='test')
 
-#         # Create a fake request with POST data, 
-#         # using the email of the account above.
-#         data = {'email': email}
-#         response = self.client.post(reverse('register-email'), data)
+        # Create a fake request with POST data, 
+        # using the email of the account above.
+        data = {'email': email}
+        response = self.client.post(reverse('register-email'), data)
 
-#         # Check if the response status code is HTTP 401 Unauthorized
-#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        # Check if the response status code is HTTP 401 Unauthorized
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-#         # Check if the response includes the expected detail message
-#         self.assertIn('Account already registered with this email address.', response.data['detail'])
+        # Check if the response includes the expected detail message
+        self.assertIn('Account already registered with this email address.', response.data['detail'])
 
 
-# class UserRegistrationAPIViewTest(APITestCase):
+class UserRegistrationAPIViewTest(APITestCase):
 
-#     # Resets the state of the client between tests
-#     def setUp(self):
-#         self.client = APIClient()
+    # Resets the state of the client between tests
+    def setUp(self):
+        self.client = APIClient()
 
-#     # Create a registration link for a test email
-#     def get_register_link(self, email):
-#         uid = urlsafe_base64_encode(force_bytes(email))
-#         return reverse('register-account', kwargs={'pk': uid})
+    # Create a registration link for a test email
+    def get_register_link(self, email):
+        uid = urlsafe_base64_encode(force_bytes(email))
+        return reverse('register-account', kwargs={'pk': uid})
 
-#     def test_user_registration_success(self):
+    def test_user_registration_success(self):
 
-#         email = 'test_user@example.com'
+        email = 'test_user@example.com'
 
-#         registration_link = self.get_register_link(email)
+        registration_link = self.get_register_link(email)
 
-#         # Simulate following the registration link for the given email address
-#         response = self.client.post(registration_link,
-#             {'username': 'test_user', 'password': 'secure_password'}
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertIn('Account created successfully.', response.data['detail'])
+        # Simulate following the registration link for the given email address
+        response = self.client.post(registration_link,
+            {'username': 'test_user', 'password': 'secure_password'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('Account created successfully.', response.data['detail'])
 
-#         # Check if the user is actually created in the database
-#         user = User.objects.filter(email=email).first()
-#         self.assertIsNotNone(user)
-#         self.assertEqual(user.username, 'test_user')  # Assuming your serializer assigns a default username
+        # Check if the user is actually created in the database
+        user = User.objects.filter(email=email).first()
+        self.assertIsNotNone(user)
+        self.assertEqual(user.username, 'test_user')  # Assuming your serializer assigns a default username
 
-#     def test_invalid_registration_link(self):
-#         registration_link = self.get_register_link("invalid_email")
+    def test_invalid_registration_link(self):
+        registration_link = self.get_register_link("invalid_email")
 
-#         # Try to register with the existing user's email
-#         response = self.client.post(registration_link,
-#             {'username': 'test_user', 'password': 'test_password'}
-#         )
+        # Try to register with the existing user's email
+        response = self.client.post(registration_link,
+            {'username': 'test_user', 'password': 'test_password'}
+        )
 
-#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-#         self.assertIn('Invalid registration link.', response.data['detail'])
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('Invalid registration link.', response.data['detail'])
 
-#     def test_user_registration_existing_user(self):
-#         # Create an existing user for testing
-#         email = 'test_user@example.com'
-#         existing_user = User.objects.create_user(username='existing_user', email=email)
+    def test_user_registration_existing_user(self):
+        # Create an existing user for testing
+        email = 'test_user@example.com'
+        existing_user = User.objects.create_user(username='existing_user', email=email)
 
-#         registration_link = self.get_register_link(email)
+        registration_link = self.get_register_link(email)
 
-#         # Try to register with the existing user's email
-#         response = self.client.post(registration_link,
-#             {'username': 'test_user', 'password': 'test_password'}
-#         )
+        # Try to register with the existing user's email
+        response = self.client.post(registration_link,
+            {'username': 'test_user', 'password': 'test_password'}
+        )
 
-#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-#         self.assertIn('Account already registered with this email address.', response.data['detail'])
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('Account already registered with this email address.', response.data['detail'])
 
-#         # Ensure that the existing user is not modified
-#         existing_user.refresh_from_db()
-#         self.assertEqual(existing_user.username, 'existing_user')  # Ensure the username remains the same
+        # Ensure that the existing user is not modified
+        existing_user.refresh_from_db()
+        self.assertEqual(existing_user.username, 'existing_user')  # Ensure the username remains the same
 
 class UserLoginAPIViewTest(APITestCase):
     # Resets client between tests and creates a new user.
@@ -140,166 +142,168 @@ class UserLoginAPIViewTest(APITestCase):
         # Check if the response includes the expected detail message
         self.assertIn('Invalid credentials.', response.data['detail'])
 
-# class DocsCreateRetrieveViewTest(APITestCase):
-#     def setUp(self):
-#         self.client = APIClient()
-#         self.user = User.objects.create_user(username='test_user', password='test_password')
+class DocsCreateRetrieveViewTest(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
 
-#         # Generate JWT token for the user
-#         token = AccessToken.for_user(self.user)
+        self.username ='test_user'
 
-#         # Include the token in the client's request headers
-#         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        self.user = User.objects.create_user(username=self.username, password='test_password')
 
-#     def test_get_docs_list(self):
-#         # Create a document associated with the authenticated user
-#         EditorFile.objects.create(author=self.user, title='Test Document', body='Lorem Ipsum')
+        # Generate JWT token for the user
+        token = generate_jwt_token(self.username)
 
-#         # Send a GET request to retrieve the list of documents
-#         response = self.client.get(reverse('create-view-docs'))
+        # Include the token in the client's request headers
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
 
-#         # Check if the response is successful (HTTP 200 OK)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_get_docs_list(self):
+        # Create a document associated with the authenticated user
+        EditorFile.objects.create(author=self.username, title='Test Document', body='Lorem Ipsum')
 
-#         # Check if the serializer used for the response is the correct one
-#         self.assertIsInstance(response.data, list)
-#         self.assertEqual(response.data[0]['title'], 'Test Document')
+        # Send a GET request to retrieve the list of documents
+        response = self.client.get(reverse('create-view-docs'))
 
-#     def test_post_create_new_doc(self):
-#         # Data for creating a new document
-#         data = {'title': 'New Document', 'body': 'Hello World'}
+        # Check if the response is successful (HTTP 200 OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-#         # Send a POST request to create a new document
-#         response = self.client.post(reverse('create-view-docs'), data)
+        # Check if the serializer used for the response is the correct one
+        self.assertIsInstance(response.data, list)
+        self.assertEqual(response.data[0]['title'], 'Test Document')
 
-#         # Check if the response is successful (HTTP 201 Created)
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_post_create_new_doc(self):
+        # Data for creating a new document
+        data = {'title': 'New Document', 'body': 'Hello World'}
 
-#         # Check if the serializer used for the response is the correct one
-#         self.assertIsInstance(response.data, dict)
-#         self.assertEqual(response.data['title'], 'New Document')
+        # Send a POST request to create a new document
+        response = self.client.post(reverse('create-view-docs'), data)
 
-#     def test_get_empty_docs_list(self):
-#         # Send a GET request to retrieve the list of documents for a user with no documents
-#         response = self.client.get(reverse('create-view-docs'))
+        # Check if the response is successful (HTTP 201 Created)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-#         # Check if the response is successful (HTTP 200 OK)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Check if the serializer used for the response is the correct one
+        self.assertIsInstance(response.data, dict)
+        self.assertEqual(response.data['title'], 'New Document')
 
-#         # Check if the response contains an empty list
-#         self.assertEqual(response.data, [])
+    def test_get_empty_docs_list(self):
+        # Send a GET request to retrieve the list of documents for a user with no documents
+        response = self.client.get(reverse('create-view-docs'))
 
-# import datetime, jwt
+        # Check if the response is successful (HTTP 200 OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-# class DocRetrieveUpdateDestroyViewTest(APITestCase):
-#     def setUp(self):
-#         self.client = APIClient()
-#         username = 'test_user'
-#         self.user = User.objects.create_user(username=username, password='test_password')
-
-#         # Generate JWT token for the user
-#         token = jwt.encode({"username": username, "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=3600)}, 'testkey', algorithm="HS256")
+        # Check if the response contains an empty list
+        self.assertEqual(response.data, [])
 
 
-#         # Include the token in the client's request headers
-#         self.client.cookies['JWT'] = str(token)
+class DocRetrieveUpdateDestroyViewTest(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.username = 'test_user'
+        self.user = User.objects.create_user(username=self.username, password='test_password')
 
-#         # Create a test document associated with the user
-#         self.doc = EditorFile.objects.create(author=self.user, title='Test Document', body='Lorem Ipsum')
+        # Generate JWT token for the user
+        token = generate_jwt_token(self.username)
+
+        # Include the token in the client's request headers
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
 
 
-#     def test_get_selected_doc(self):
-#         # Send a GET request to retrieve the selected document
-#         response = self.client.get(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
+        # Create a test document associated with the user
+        self.doc = EditorFile.objects.create(author=self.user, title='Test Document', body='Lorem Ipsum')
 
-#         # Check if the response is successful (HTTP 200 OK)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-#         # Check if the serializer used for the response is the correct one
-#         self.assertIsInstance(response.data, dict)
-#         self.assertEqual(response.data['title'], 'Test Document')
+    def test_get_selected_doc(self):
+        # Send a GET request to retrieve the selected document
+        response = self.client.get(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
 
-#     def test_update_selected_doc(self):
-#         # Data for updating the document
-#         updated_data = {'title': 'Updated Document', 'body': 'Updated Content'}
+        # Check if the response is successful (HTTP 200 OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-#         # Send a PUT request to update the selected document
-#         response = self.client.put(reverse('edit-doc', kwargs={'pk': self.doc.pk}), updated_data, format='json')
+        # Check if the serializer used for the response is the correct one
+        self.assertIsInstance(response.data, dict)
+        self.assertEqual(response.data['title'], 'Test Document')
 
-#         # Check if the response is successful (HTTP 200 OK)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_update_selected_doc(self):
+        # Data for updating the document
+        updated_data = {'title': 'Updated Document', 'body': 'Updated Content'}
 
-#         # Check if the serializer used for the response is the correct one
-#         self.assertIsInstance(response.data, dict)
-#         self.assertEqual(response.data['title'], 'Updated Document')
+        # Send a PUT request to update the selected document
+        response = self.client.put(reverse('edit-doc', kwargs={'pk': self.doc.pk}), updated_data, format='json')
 
-#     def test_delete_selected_doc(self):
-#         # Send a DELETE request to delete the selected document
-#         response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
+        # Check if the response is successful (HTTP 200 OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-#         # Check if the response is successful (HTTP 204 No Content)
-#         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Check if the serializer used for the response is the correct one
+        self.assertIsInstance(response.data, dict)
+        self.assertEqual(response.data['title'], 'Updated Document')
 
-#         # Check if the document has been deleted
-#         self.assertFalse(EditorFile.objects.filter(pk=self.doc.pk).exists())
+    def test_delete_selected_doc(self):
+        # Send a DELETE request to delete the selected document
+        response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
 
-#     # def test_delete_selected_doc_permission_denied(self):
-#     #     # Create a new user
-#     #     another_user = User.objects.create_user(username='another_user', password='another_password')
+        # Check if the response is successful (HTTP 204 No Content)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-#     #     # Generate a new JWT token for the new user
-#     #     another_token = AccessToken.for_user(another_user)
+        # Check if the document has been deleted
+        self.assertFalse(EditorFile.objects.filter(pk=self.doc.pk).exists())
 
-#     #     # Include the token in the client's request headers
-#     #     self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {another_token}')
+    # def test_delete_selected_doc_permission_denied(self):
+    #     # Create a new user
+    #     another_user = User.objects.create_user(username='another_user', password='another_password')
 
-#     #     # Send a DELETE request to delete the selected document, but it should fail due to permission denied
-#     #     response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
+    #     # Generate a new JWT token for the new user
+    #     another_token = AccessToken.for_user(another_user)
 
-#     #     # Check if the response is a permission denied error (HTTP 403 Forbidden)
-#     #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    #     # Include the token in the client's request headers
+    #     self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {another_token}')
 
-#     #     # Check if the document still exists
-#     #     self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
+    #     # Send a DELETE request to delete the selected document, but it should fail due to permission denied
+    #     response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
 
-# # TODO: Once calling an LLM has actually been implemented in the corresponding view, update this test accordingly.
-# class GenerateTextTest(APITestCase):
-#     def setUp(self):
-#         self.client = APIClient()
+    #     # Check if the response is a permission denied error (HTTP 403 Forbidden)
+    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-#     def test_generate_text_success(self):
-#         # Define the request data
-#         request_data = {
-#             "promptName": "Test Prompt",
-#             "messages": [
-#                 {
-#                     "role": "User",
-#                     "content": "Generate text for testing"
-#                 }
-#             ]
-#         }
+    #     # Check if the document still exists
+    #     self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
 
-#         # Convert the request data to JSON format
-#         json_data = json.dumps(request_data)
+# TODO: Once calling an LLM has actually been implemented in the corresponding view, update this test accordingly.
+class GenerateTextTest(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
 
-#         # Send a POST request to the generate_text endpoint
-#         response = self.client.post(reverse('generate-text'), json_data, content_type='application/json')
+    def test_generate_text_success(self):
+        # Define the request data
+        request_data = {
+            "promptName": "Test Prompt",
+            "messages": [
+                {
+                    "role": "User",
+                    "content": "Generate text for testing"
+                }
+            ]
+        }
 
-#         # Check if the response is successful (HTTP 200 OK)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Convert the request data to JSON format
+        json_data = json.dumps(request_data)
 
-#         # Parse the response JSON
-#         response_data = json.loads(response.content)
+        # Send a POST request to the generate_text endpoint
+        response = self.client.post(reverse('generate-text'), json_data, content_type='application/json')
 
-#         # Verify the content of the response
-#         self.assertEqual(response_data['status'], 200)
-#         self.assertEqual(response_data['message'], 'Text generated successfully')
-#         self.assertEqual(response_data['data']['promptName'], 'Test Prompt')
-#         self.assertEqual(response_data['data']['messages'], [{'role': 'User', 'content': 'Generate text for testing'}])
+        # Check if the response is successful (HTTP 200 OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-#     def test_generate_text_invalid_json(self):
-#         # Send a POST request with invalid JSON format
-#         response = self.client.post(reverse('generate-text'), "invalid_json", content_type='application/json')
+        # Parse the response JSON
+        response_data = json.loads(response.content)
 
-#         # Check if the response indicates invalid JSON format (HTTP 400 Bad Request)
-#         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Verify the content of the response
+        self.assertEqual(response_data['status'], 200)
+        self.assertEqual(response_data['message'], 'Text generated successfully')
+        self.assertEqual(response_data['data']['promptName'], 'Test Prompt')
+        self.assertEqual(response_data['data']['messages'], [{'role': 'User', 'content': 'Generate text for testing'}])
+
+    def test_generate_text_invalid_json(self):
+        # Send a POST request with invalid JSON format
+        response = self.client.post(reverse('generate-text'), "invalid_json", content_type='application/json')
+
+        # Check if the response indicates invalid JSON format (HTTP 400 Bad Request)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

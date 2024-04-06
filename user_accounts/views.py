@@ -32,9 +32,6 @@ import logging
 # logger = logging.getLogger('defaultlogger')
 # logger.info('This is a simple log message')
 
-# TODO: Set key securely.
-key = "TODO_CHANGEME_KEY"
-
 load_dotenv()
 
 def send_mailgun_email(recipient_emails, subject, message):
@@ -67,9 +64,26 @@ def is_existing_user(email):
     return User.objects.filter(email=email).first()
 
 
-def verify_jwt_token(request):
+# TODO: Set key securely.
+key = "TODO_CHANGEME_KEY"
+
+def generate_jwt_token(username, expiry_length=datetime.timedelta(seconds=3600)):
+
+    return jwt.encode({"username": username, "exp": datetime.datetime.now(tz=datetime.timezone.utc) + expiry_length}, key, algorithm="HS256")
+
+def encode_jwt_token(response, username, expiry_length=datetime.timedelta(seconds=3600)):
+
+    # Generate JWT token
+    encoded_jwt = jwt.encode({"username": username, "exp": datetime.datetime.now(tz=datetime.timezone.utc) + expiry_length}, key, algorithm="HS256")
+
+    # Set JWT token as a cookie
+    response.set_cookie(key='JWT', value=str(encoded_jwt), httponly=True, samesite='None', domain=os.getenv("DOMAIN"), secure=True, path="/")
+
+    return response
+
+def decode_jwt_token(request):
     """
-    Verify the JWT token in the request.
+    Decode the JWT token in the request.
 
     Args:
         request: The request object.
@@ -78,16 +92,15 @@ def verify_jwt_token(request):
         User object if the token is valid, None otherwise.
     """
 
-    print(request.COOKIES.get('JWT'))
-    print(f'test {jwt.decode(request.COOKIES.get('JWT'), key, algorithms=["HS256"])}')
-    try:
-        # Attempt to authenticate the request using JWT token
-        username = jwt.decode(request.COOKIES.get('JWT'), key, algorithms=["HS256"])
-        print(f'usernae: {username}')
-        return username
-    except:
-        # Token authentication failed
-        return None
+    authorization_header = request.META.get('HTTP_AUTHORIZATION')
+
+    token = authorization_header.split()[1] if authorization_header else None
+
+    if token:
+        decoded_token = jwt.decode(token, key, algorithms=["HS256"])
+        return decoded_token['username']
+        
+    return None
 
 class RegistrationEmailAPIView(APIView):
     def post(self, request):
@@ -158,23 +171,18 @@ class UserLoginAPIView(APIView):
             serializer = UserAuthSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
+            username = serializer.validated_data['username']
+
             # Authenticate user
-            user = authenticate(request, username=serializer.validated_data['username'],
+            user = authenticate(request, username=username,
                                 password=serializer.validated_data['password'])
 
             if user is not None:
-                # Generate JWT token
-                encoded_jwt = jwt.encode({"username": serializer.validated_data['username'], "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=3600)}, key, algorithm="HS256")
 
-                # Set JWT token as a cookie
                 response_data = {'detail': 'Login successful.'}
                 response = Response(response_data)
 
-                # Set JWT token as a cookie
-                response.set_cookie(key='JWT', value=str(encoded_jwt), httponly=True, samesite='None', domain=os.getenv("DOMAIN"), secure=True, path="/")
-
-                print(response)
-                return response
+                return encode_jwt_token(response, username)
 
             else:
                 return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
@@ -215,7 +223,7 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         Handle GET requests to retrieve documents for the currently authenticated user.
         """
 
-        user = verify_jwt_token(request)
+        user = decode_jwt_token(request)
 
         if user is None:
             # Token authentication failed
@@ -233,8 +241,9 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         """
         Handle POST requests to create a new document for the currently authenticated user.
         """
-        # Verify JWT token
-        user = verify_jwt_token(request)
+        # Decode JWT token
+        user = decode_jwt_token(request)
+
         
         if user is None:
             # Token authentication failed
@@ -247,8 +256,7 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         """
         Associate the created document with the currently authenticated user.
         """
-        # Verify JWT token
-        user = verify_jwt_token(self.request)
+        user = decode_jwt_token(self.request)
         
         if user is None:
             # Token authentication failed
@@ -256,7 +264,6 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
 
         # Associate the document with the currently authenticated user
         serializer.save(author=user)
-
 
 
 class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
@@ -273,8 +280,7 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         """
         Retrieve the selected doc.
         """
-        # Verify JWT token
-        user = verify_jwt_token(request)
+        user = decode_jwt_token(request)
         
         if user is None:
             # Token authentication failed
@@ -286,8 +292,7 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         """
         Perform the update operation and associate the updated document with the currently authenticated user.
         """
-        # Verify JWT token
-        user = verify_jwt_token(self.request)
+        user = decode_jwt_token(self.request)
         
         if user is None:
             # Token authentication failed
@@ -299,14 +304,13 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         """
         Perform the delete operation only if the requesting user is the owner of the document.
         """
-        # Verify JWT token
-        user = verify_jwt_token(self.request)
+        user = decode_jwt_token(self.request)
         
         if user is None:
             # Token authentication failed
             raise PermissionDenied("You are not authenticated")
 
-        if instance.author == user.username:
+        if instance.author == user:
             instance.delete()
         else:
             raise PermissionDenied("You do not have permission to delete this document.")

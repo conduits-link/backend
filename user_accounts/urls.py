@@ -18,7 +18,7 @@ urlpatterns = [
     # Document controller URLs #
     ############################
     path('store/docs', DocsCreateRetrieveView.as_view(), name='create-view-docs'),
-    path('store/docs/<int:pk>/', DocRetrieveUpdateDestroyView.as_view(), name='edit-doc'),
+    path('store/docs/<str:pk>', DocRetrieveUpdateDestroyView.as_view(), name='edit-doc'),
     
     #################
     # AI controller #

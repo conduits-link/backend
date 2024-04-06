@@ -318,7 +318,7 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             # Token authentication failed
             raise PermissionDenied("You are not authenticated")
 
-        serializer.save(user=self.request.user)
+        serializer.save(user=user)
 
     def perform_destroy(self, instance):
         """

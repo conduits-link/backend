@@ -78,7 +78,7 @@ def encode_jwt_token(response, username, expiry_length=datetime.timedelta(second
 
     # Set JWT token as a cookie
     response.set_cookie(
-        key='JWT', 
+        key='jwt', 
         value=str(encoded_jwt), 
         httponly=True, 
         samesite='None', 
@@ -101,7 +101,7 @@ def decode_jwt_token(request):
     """
 
 
-    token = request.COOKIES.get('JWT')
+    token = request.COOKIES.get('jwt')
 
     logger = logging.getLogger('defaultlogger')
     logger.info('request.COOKIES:')

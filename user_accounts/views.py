@@ -256,6 +256,9 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
 
         logger.info("serializer.data:")
         logger.info(serializer.data)
+
+        logger.info("Response:")
+        logger.info(Response({"files": serializer.data}))
     
 
         # Return the serialized data in the desired format

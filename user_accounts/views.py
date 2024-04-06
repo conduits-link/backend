@@ -107,12 +107,13 @@ def decode_jwt_token(request):
     logger.info(token)
 
     if token:
+        decoded_token = jwt.decode(token, key, algorithms=["HS256"])
+
         logger.info('decoded:')
         logger.info(decoded_token)
+
         logger.info('username:')
         logger.info(decoded_token['username'])
-
-        decoded_token = jwt.decode(token, key, algorithms=["HS256"])
         return decoded_token['username']
     
     return None

@@ -4,6 +4,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
+from django.http.cookie import SimpleCookie
 
 from .views import generate_jwt_token
 
@@ -150,11 +151,7 @@ class DocsCreateRetrieveViewTest(APITestCase):
 
         self.user = User.objects.create_user(username=self.username, password='test_password')
 
-        # Generate JWT token for the user
-        token = generate_jwt_token(self.username)
-
-        # Include the token in the client's request headers
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        self.client.cookies = SimpleCookie({"JWT": generate_jwt_token(self.username)})
 
     def test_get_docs_list(self):
         # Create a document associated with the authenticated user
@@ -201,11 +198,8 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         self.username = 'test_user'
         self.user = User.objects.create_user(username=self.username, password='test_password')
 
-        # Generate JWT token for the user
-        token = generate_jwt_token(self.username)
-
         # Include the token in the client's request headers
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        self.client.cookies = SimpleCookie({"JWT": generate_jwt_token(self.username)})
 
 
         # Create a test document associated with the user
@@ -252,11 +246,7 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         another_username = 'another_user'
         another_user = User.objects.create_user(username=another_username, password='another_password')
 
-        # Generate a new JWT token for the new user
-        another_token = generate_jwt_token(another_username)
-
-        # Include the token in the client's request headers
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {another_token}')
+        self.client.cookies = SimpleCookie({"JWT": generate_jwt_token(another_username)})
 
         # Send a DELETE request to delete the selected document, but it should fail due to permission denied
         response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))

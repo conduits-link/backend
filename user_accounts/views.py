@@ -92,9 +92,7 @@ def decode_jwt_token(request):
         User object if the token is valid, None otherwise.
     """
 
-    authorization_header = request.META.get('HTTP_AUTHORIZATION')
-
-    token = authorization_header.split()[1] if authorization_header else None
+    token = request.COOKIES.get('JWT')
 
     if token:
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])

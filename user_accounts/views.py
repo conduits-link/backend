@@ -4,8 +4,6 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -22,6 +20,8 @@ from .serializers import UserAuthSerializer, FileCreateSerializer, FilePatchSeri
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+import jwt
+import datetime
 
 import os
 import requests
@@ -32,6 +32,8 @@ import logging
 # logger = logging.getLogger('defaultlogger')
 # logger.info('This is a simple log message')
 
+# TODO: Set key securely.
+key = "TODO_CHANGEME_KEY"
 
 load_dotenv()
 
@@ -76,11 +78,14 @@ def verify_jwt_token(request):
         User object if the token is valid, None otherwise.
     """
 
+    print(request.COOKIES.get('JWT'))
+    print(f'test {jwt.decode(request.COOKIES.get('JWT'), key, algorithms=["HS256"])}')
     try:
         # Attempt to authenticate the request using JWT token
-        user, _ = JWTAuthentication().authenticate(request)
-        return user
-    except AuthenticationFailed:
+        username = jwt.decode(request.COOKIES.get('JWT'), key, algorithms=["HS256"])
+        print(f'usernae: {username}')
+        return username
+    except:
         # Token authentication failed
         return None
 
@@ -158,20 +163,17 @@ class UserLoginAPIView(APIView):
                                 password=serializer.validated_data['password'])
 
             if user is not None:
-                # Generate JWT tokens
-                access  = AccessToken.for_user(user)
-                refresh = RefreshToken.for_user(user)
+                # Generate JWT token
+                encoded_jwt = jwt.encode({"username": serializer.validated_data['username'], "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=3600)}, key, algorithm="HS256")
 
                 # Set JWT token as a cookie
                 response_data = {'detail': 'Login successful.'}
                 response = Response(response_data)
 
                 # Set JWT token as a cookie
-                response.set_cookie(key='access_token', value=str(access), httponly=True, samesite='None', domain=os.getenv("DOMAIN"), secure=True, path="/")
+                response.set_cookie(key='JWT', value=str(encoded_jwt), httponly=True, samesite='None', domain=os.getenv("DOMAIN"), secure=True, path="/")
 
-                # Set refresh token as a cookie
-                response.set_cookie(key='refresh_token', value=str(refresh), httponly=True, samesite='None', domain=os.getenv("DOMAIN"), secure=True, path="/")
-
+                print(response)
                 return response
 
             else:

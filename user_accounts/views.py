@@ -3,7 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
+from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, NotFound
+from rest_framework.decorators import api_view
 
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -295,74 +296,84 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         
         if user is None:
             # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({"doc": serializer.data}, status=200)
+        except NotFound:
+            return Response({"error": "The doc was not found."}, status=404)
+        
+    def put(self, request, *args, **kwargs):
+        """
+        Update the selected doc.
+        """
+        user = decode_jwt_token(request)
+        
+        if user is None:
+            # Token authentication failed
             return Response({"error": "Unauthorized"}, status=401)
 
-        return self.retrieve(request, *args, **kwargs)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data.get('doc'), partial=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({"doc": {"modified": instance.modified}}, status=200)
+        except ValidationError:
+            return Response({"error": "The client did not provide the correct data, and the doc was not updated."}, status=400)
+        except NotFound:
+            return Response({"error": "The doc was not found."}, status=404)
 
-    def perform_update(self, serializer):
+    def delete(self, request, *args, **kwargs):
         """
-        Perform the update operation and associate the updated document with the currently authenticated user.
+        Delete the selected doc.
         """
-        user = decode_jwt_token(self.request)
+        user = decode_jwt_token(request)
         
         if user is None:
             # Token authentication failed
-            raise PermissionDenied("You are not authenticated")
+            return Response({"error": "Unauthorized"}, status=401)
 
-        serializer.save(user=user)
-
-    def perform_destroy(self, instance):
-        """
-        Perform the delete operation only if the requesting user is the owner of the document.
-        """
-        user = decode_jwt_token(self.request)
-        
-        if user is None:
-            # Token authentication failed
-            raise PermissionDenied("You are not authenticated")
-
+        instance = self.get_object()
         if instance.author == user:
             instance.delete()
+            return Response({"message": "The doc was removed."}, status=200)
         else:
-            raise PermissionDenied("You do not have permission to delete this document.")
+            return Response({"error": "You do not have permission to delete this document."}, status=403)
 
 # Performs LLM inference on text provided.
 # TODO : We need to set this up with our LLM.
+@api_view(['POST'])
 def generate_text(request):
     """
     Handles endpoint for /generate/text : POST
     requests a generative model to generate text, given a prompt.
     """
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Invalid request method'})
-    
-    try:
-        # Assuming your request data is in JSON format
-        data = json.loads(request.body.decode('utf-8'))
 
-        # Extract data from the request
-        prompt_name = data.get('promptName', '')
-        messages = data.get('messages', [])
+    # Extract data from the request
+    data = request.data
+    prompt_name = data.get('prompt', {}).get('name', '')
+    messages = data.get('prompt', {}).get('messages', [])
 
-        role = messages[0].get("role")
-        content = messages[0].get("content")
+    if not messages:
+        return Response({"error": "Messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # TODO: Perform inference with your generative model using prompt_name and messages
+    # Extract the first message
+    first_message = messages[0]
+    role = first_message.get("role", "")
+    content = first_message.get("content", "")
 
-        # Create a response JSON
-        response_data = {
-            "status": 200,  # Adjust the status code accordingly
-            "message": "Text generated successfully",
-            "data": {
-                "promptName": prompt_name,
-                "messages": messages
-            }
+    # TODO: Perform inference with your generative model using prompt_name and messages
+
+    # Create a response data dictionary
+    response_data = {
+        "message": "Text generated successfully",
+        "prompt": {
+            "name": prompt_name,
+            "messages": messages
         }
+    }
 
-        return JsonResponse(response_data, status=200)
-
-    except json.JSONDecodeError as e:
-        return JsonResponse({"error": "Invalid JSON format in the request"}, status=400)
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    return Response(response_data, status=status.HTTP_200_OK)

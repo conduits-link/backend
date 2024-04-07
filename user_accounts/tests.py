@@ -240,10 +240,8 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         # Include the token in the client's request headers
         self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
 
-
         # Create a test document associated with the user
         self.doc = EditorFile.objects.create(author=self.user, title='Test Document', body='Lorem Ipsum')
-
 
     def test_get_selected_doc(self):
         # Send a GET request to retrieve the selected document
@@ -254,11 +252,12 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
 
         # Check if the serializer used for the response is the correct one
         self.assertIsInstance(response.data, dict)
-        self.assertEqual(response.data['title'], 'Test Document')
+
+        self.assertEqual(response.data['doc']['title'], 'Test Document')
 
     def test_update_selected_doc(self):
         # Data for updating the document
-        updated_data = {'title': 'Updated Document', 'body': 'Updated Content'}
+        updated_data = {'doc': {'title': 'Updated Document', 'body': 'Updated Content'}}
 
         # Send a PUT request to update the selected document
         response = self.client.put(reverse('edit-doc', kwargs={'pk': self.doc.pk}), updated_data, format='json')
@@ -266,16 +265,30 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         # Check if the response is successful (HTTP 200 OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+
         # Check if the serializer used for the response is the correct one
         self.assertIsInstance(response.data, dict)
-        self.assertEqual(response.data['title'], 'Updated Document')
+        self.assertIn('doc', response.data)
+        self.assertIn('modified', response.data['doc'])
+
+        # Retrieve the updated document from the database
+        updated_doc = EditorFile.objects.get(pk=self.doc.pk)
+
+        # Check updates have been made
+        self.assertEqual(updated_doc.title, 'Updated Document')
+        self.assertEqual(updated_doc.body, 'Updated Content')
 
     def test_delete_selected_doc(self):
         # Send a DELETE request to delete the selected document
         response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
 
-        # Check if the response is successful (HTTP 204 No Content)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Check if the response is successful (HTTP 200 OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check if the message indicates that the document was removed
+        self.assertIn('message', response.data)
+
+        self.assertEqual("The doc was removed.", response.data['message'])
 
         # Check if the document has been deleted
         self.assertFalse(EditorFile.objects.filter(pk=self.doc.pk).exists())
@@ -284,12 +297,12 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
 
         # Clear JWT
         self.client.cookies = {}
-        
+
         # Send a DELETE request to delete the selected document, but it should fail due to permission denied
         response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
 
         # Check if the response is a permission denied error (HTTP 403 Forbidden)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         # Check if the document still exists
         self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
@@ -318,32 +331,27 @@ class GenerateTextTest(APITestCase):
     def test_generate_text_success(self):
         # Define the request data
         request_data = {
-            "promptName": "Test Prompt",
-            "messages": [
-                {
-                    "role": "User",
-                    "content": "Generate text for testing"
-                }
-            ]
+            "prompt": {
+                "name": "Test Prompt",
+                "messages": [
+                    {
+                        "role": "User",
+                        "content": "Generate text for testing"
+                    }
+                ]
+            }
         }
 
-        # Convert the request data to JSON format
-        json_data = json.dumps(request_data)
-
         # Send a POST request to the generate_text endpoint
-        response = self.client.post(reverse('generate-text'), json_data, content_type='application/json')
+        response = self.client.post(reverse('generate-text'), request_data, format='json')
 
         # Check if the response is successful (HTTP 200 OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Parse the response JSON
-        response_data = json.loads(response.content)
-
         # Verify the content of the response
-        self.assertEqual(response_data['status'], 200)
-        self.assertEqual(response_data['message'], 'Text generated successfully')
-        self.assertEqual(response_data['data']['promptName'], 'Test Prompt')
-        self.assertEqual(response_data['data']['messages'], [{'role': 'User', 'content': 'Generate text for testing'}])
+        self.assertEqual(response.data['message'], 'Text generated successfully')
+        self.assertEqual(response.data['prompt']['name'], 'Test Prompt')
+        self.assertEqual(response.data['prompt']['messages'], [{'role': 'User', 'content': 'Generate text for testing'}])
 
     def test_generate_text_invalid_json(self):
         # Send a POST request with invalid JSON format

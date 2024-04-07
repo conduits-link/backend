@@ -23,4 +23,4 @@ class FilePatchSerializer(serializers.ModelSerializer):
 class FileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = EditorFile
-        fields = ('_id', 'title', 'body', "created", 'modified') 
+        fields = ('uid', 'title', 'body', "created", 'modified') 

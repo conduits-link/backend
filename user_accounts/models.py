@@ -6,7 +6,7 @@ import uuid
 class EditorFile(models.Model):
     """Class to represent a basic text file in our database."""
 
-    _id = models.CharField(max_length=50, primary_key=True, default=uuid.uuid4, editable=False, help_text='ID of file')
+    uid = models.CharField(max_length=50, primary_key=True, default=uuid.uuid4, editable=False, help_text='ID of file')
 
     title = models.CharField(max_length=50, help_text='Title of file')
 

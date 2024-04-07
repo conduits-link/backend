@@ -135,7 +135,8 @@ class UserLoginAPIViewTest(APITestCase):
     # Resets client between tests and creates a new user.
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='test_user', password='test_password')
+        self.username = 'test_user'
+        self.user = User.objects.create_user(username=self.username, password='test_password')
 
     def test_user_login_successful(self):
         # Send a POST request with valid login credentials
@@ -146,6 +147,8 @@ class UserLoginAPIViewTest(APITestCase):
 
         # Check if the response includes the expected detail message
         self.assertIn('Login successful.', response.data['detail'])
+
+        validate_jwt(self, response, self.username)
 
     def test_user_login_invalid_credentials(self):
         # Send a POST request with invalid login credentials
@@ -180,28 +183,28 @@ class DocsCreateRetrieveViewTest(APITestCase):
 
         # Check if the response data has the expected structure
         self.assertIsInstance(response.data, dict)
-        self.assertIn('files', response.data)
-        files = response.data['files']
-        self.assertIsInstance(files, list)
+        self.assertIn('docs', response.data)
+        docs = response.data['docs']
+        self.assertIsInstance(docs, list)
 
         # Check the structure of each file in the 'files' list
-        for file_data in files:
-            self.assertIsInstance(file_data, dict)
-            self.assertIn('_id', file_data)
-            self.assertIsInstance(file_data['_id'], str)
-            self.assertIn('title', file_data)
-            self.assertIsInstance(file_data['title'], str)
-            self.assertIn('body', file_data)
-            self.assertIsInstance(file_data['body'], str)  
-            self.assertIn('created', file_data)
-            self.assertIsInstance(file_data['created'], str)  
-            self.assertIn('modified', file_data)
-            self.assertIsInstance(file_data['modified'], str)  
+        for doc in docs:
+            self.assertIsInstance(doc, dict)
+            self.assertIn('uid', doc)
+            self.assertIsInstance(doc['uid'], str)
+            self.assertIn('title', doc)
+            self.assertIsInstance(doc['title'], str)
+            self.assertIn('body', doc)
+            self.assertIsInstance(doc['body'], str)  
+            self.assertIn('created', doc)
+            self.assertIsInstance(doc['created'], str)  
+            self.assertIn('modified', doc)
+            self.assertIsInstance(doc['modified'], str)  
 
         # Most recently created document should be listed first.
-        self.assertEqual(files[0]['title'], 'Test Document 2')
+        self.assertEqual(docs[0]['title'], 'Test Document 2')
 
-        self.assertEqual(files[1]['title'], 'Test Document')
+        self.assertEqual(docs[1]['title'], 'Test Document')
 
     def test_post_create_new_doc(self):
         # Data for creating a new document
@@ -224,8 +227,8 @@ class DocsCreateRetrieveViewTest(APITestCase):
         # Check if the response is successful (HTTP 200 OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Check if the response contains an empty list
-        self.assertEqual(response.data['files'], [])
+        # Check if the response contains an empty list of docs
+        self.assertEqual(response.data['docs'], [])
 
 
 class DocRetrieveUpdateDestroyViewTest(APITestCase):
@@ -277,7 +280,21 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         # Check if the document has been deleted
         self.assertFalse(EditorFile.objects.filter(pk=self.doc.pk).exists())
 
-    def test_delete_selected_doc_permission_denied(self):
+    def test_delete_selected_doc_not_logged_in(self):
+
+        # Clear JWT
+        self.client.cookies = {}
+        
+        # Send a DELETE request to delete the selected document, but it should fail due to permission denied
+        response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
+
+        # Check if the response is a permission denied error (HTTP 403 Forbidden)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Check if the document still exists
+        self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
+
+    def test_delete_selected_doc_wrong_user(self):
         # Create a new user
         another_username = 'another_user'
         another_user = User.objects.create_user(username=another_username, password='another_password')

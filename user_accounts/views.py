@@ -247,7 +247,7 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         serializer = FileListSerializer(queryset, many=True)
 
         # Return the serialized data in the desired format
-        return Response({"files": serializer.data})
+        return Response({"docs": serializer.data})
 
     def post(self, request, *args, **kwargs):
         """

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegistrationEmailAPIView, UserRegistrationAPIView, UserLoginAPIView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, generate_text
+from .views import RegistrationEmailAPIView, UserRegistrationAPIView, UserLoginAPIView, UserForgotAPIView, UserResetPasswordAPIView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, generate_text
 
 # Endpoints given in 
 # https://github.com/dan-smith-tech/conduit/blob/main/docs/api.md
@@ -13,6 +13,8 @@ urlpatterns = [
     path('auth/register', RegistrationEmailAPIView.as_view(), name='register-email'),
     path('auth/register/<str:pk>', UserRegistrationAPIView.as_view(), name='register-account'),
     path('auth/login', UserLoginAPIView.as_view(), name='login'),
+    path('auth/forgot', UserForgotAPIView.as_view(), name='forgot'),
+    path('auth/forgot/<str:pk>', UserResetPasswordAPIView.as_view(), name='reset'),
 
     ############################
     # Document controller URLs #

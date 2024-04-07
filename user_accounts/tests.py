@@ -109,8 +109,7 @@ class UserRegistrationAPIViewTest(APITestCase):
             {'username': 'test_user', 'password': 'test_password'}
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('Invalid registration link.', response.data['detail'])
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_user_registration_existing_user(self):
         # Create an existing user for testing
@@ -159,6 +158,70 @@ class UserLoginAPIViewTest(APITestCase):
 
         # Check if the response includes the expected detail message
         self.assertIn('Invalid credentials.', response.data['detail'])
+
+class UserForgotAPIViewTestCase(TestCase):
+    def test_send_forgot_email(self):
+
+        data = {'email': 'test@example.com'}
+        response = self.client.post(reverse('forgot'), data)
+
+        # If email is valid, response should be 200.
+        self.assertEqual(response.status_code, 200)
+
+    def test_invalid_forgot_email_address(self):
+
+        # Create a fake request with POST data, using invalid email.
+        data = {'email': 'invalid_email'}
+        response = self.client.post(reverse('forgot'), data)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Check if the response includes the expected detail message
+        self.assertIn('Invalid email address.', response.data['detail'])
+
+class UserResetPasswordAPIViewTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        email= 'test@example.com'
+        self.user = User.objects.create_user(username='test_user', email=email, password='old_password')
+        self.uid = urlsafe_base64_encode(force_bytes(email))
+
+    def test_user_reset_password(self):
+        
+        # Data for the request
+        data = {'password': 'new_password'}
+
+        # Send POST request to the view
+        response = self.client.post(reverse('reset', kwargs={'pk': self.uid}), data)
+
+        # Check if the password was updated
+        updated_user = User.objects.get(pk=self.user.pk)
+        self.assertTrue(updated_user.check_password('new_password'))
+
+        # Check the response status code
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_user_reset_password_no_password(self):
+        # Data for the request
+        data = {}
+
+        # Send POST request to the view without providing a password
+        response = self.client.post(reverse('reset', kwargs={'pk': self.uid}), data)
+
+        # Check if the response status code is 400 Bad Request
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_user_reset_password_invalid_email(self):
+        # Data for the request
+        data = {'password': 'new_password'}
+
+        broken_uid = urlsafe_base64_encode(force_bytes("not_an_email"))
+
+        # Send POST request to the view with an invalid email
+        response = self.client.post(reverse('reset', kwargs={'pk': broken_uid}), data)
+
+        # Check if the response status code is 404 Not Found
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class DocsCreateRetrieveViewTest(APITestCase):
     def setUp(self):
@@ -229,7 +292,6 @@ class DocsCreateRetrieveViewTest(APITestCase):
 
         # Check if the response contains an empty list of docs
         self.assertEqual(response.data['docs'], [])
-
 
 class DocRetrieveUpdateDestroyViewTest(APITestCase):
     def setUp(self):

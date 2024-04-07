@@ -41,16 +41,21 @@ def send_mailgun_email(recipient_emails, subject, message):
     """
 
     mailgun_domain = os.getenv("MAILGUN_DOMAIN")
-    site_domain = "conduits.link"
+    site_domain = os.getenv("SITE_DOMAIN")
 
     if mailgun_domain is not None:
-        return requests.post(
+        email_response = requests.post(
         "https://api.mailgun.net/v3/" + mailgun_domain + "/messages",
         auth=("api", os.getenv("MAILGUN_API_KEY")),
         data={"from": "Conduit <admin@" + site_domain + ">",
             "to": recipient_emails,
             "subject": subject,
             "html": message})
+    
+    if email_response is None or email_response.status_code != 200:
+        return Response({"message": "Internal server error occurred while sending email"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    return Response({'message': 'Email sent successfully'}, status.HTTP_202_ACCEPTED)
 
 # Check if input is a valid email address.
 def is_valid_email(email):
@@ -159,11 +164,7 @@ class RegistrationEmailAPIView(APIView):
         message = f'Click the following link to create your account:\n\n<a href="{registration_link}">{registration_link}</a>'
         recipient_list = [email]
 
-        email_response = send_mailgun_email(recipient_list, subject, message)
-
-        if email_response is None or email_response.status_code != 200:
-            return Response({"message": "Internal server error occurred while sending email"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'message': 'Email sent successfully'}, status.HTTP_202_ACCEPTED)
+        return send_mailgun_email(recipient_list, subject, message)
 
     def get(self, request):
         return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -175,7 +176,7 @@ class UserRegistrationAPIView(APIView):
             email = force_str(urlsafe_base64_decode(pk))
 
             if not is_valid_email(email):
-                return Response({"detail": "Invalid registration link."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
             if is_existing_user(email):
                 return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_400_BAD_REQUEST)
@@ -200,6 +201,50 @@ class UserRegistrationAPIView(APIView):
 class UserLoginAPIView(APIView):
     def post(self, request):
         return login(request, "Login successful.", status.HTTP_200_OK)
+
+class UserForgotAPIView(APIView):
+    
+    def post(self, request):
+        email = request.data.get('email')
+
+        if not is_valid_email(email):
+            return Response({'detail': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if is_existing_user(email):
+
+            # Generate UID as string
+            uid = urlsafe_base64_encode(force_bytes(email))
+
+            # Create reset password link with UID as string
+            reset_link = "https://www." + os.getenv("SITE_DOMAIN") + "/forgot/" + uid
+
+            # Send email
+            subject = 'Conduit - Reset Password Request.'
+            message = f'We received a request to reset your Conduit password. Please click the following link tp reset it:\n\n<a href="{reset_link}">{reset_link}</a>\n\nIf you did not make this request, please disregard this email.'
+            recipient_list = [email]
+            send_mailgun_email(recipient_list, subject, message)
+
+        return Response({"message": "If email was valid, reset password link has been sent."}, status=status.HTTP_200_OK)
+         
+class UserResetPasswordAPIView(APIView):
+    def post(self, request, pk):
+        # Decode the UID to get the email address
+        email = force_str(urlsafe_base64_decode(pk))
+
+        print(email)
+
+        if not is_valid_email(email) or not is_existing_user(email):
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        if "password" not in request.data:
+            return Response({'detail': 'No password provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.get(email=email)
+
+        user.set_password(request.data["password"])
+
+        return Response(status=status.HTTP_200_OK)
+        
 
 class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
     """

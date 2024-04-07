@@ -200,7 +200,7 @@ class UserLoginView(APIView):
         return login(request, "Login successful.", status.HTTP_200_OK)
     
 class UserLogoutView(APIView):
-    def post(self, request):
+    def get(self, request):
 
         user = decode_jwt_token(request)
 

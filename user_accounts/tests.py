@@ -237,21 +237,21 @@ class UserLogoutViewTest(APITestCase):
         self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
 
         # Log out and ensure the JWT has been cleared.
-        response = self.client.post(reverse('logout'))
+        response = self.client.get(reverse('logout'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('', response.cookies["jwt"].value)
 
     def test_logout_no_jwt(self):
 
         # Try to log out without being logged in.
-        response = self.client.post(reverse('logout'))
+        response = self.client.get(reverse('logout'))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_logout_invalid_jwt(self):
 
         # Try to log out with a JWT that doesn't correspond to a user.
         self.client.cookies = SimpleCookie({'jwt': "invalid_JWT"})
-        response = self.client.post(reverse('logout'))
+        response = self.client.get(reverse('logout'))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 

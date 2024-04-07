@@ -13,12 +13,15 @@ from .models import User, EditorFile
 
 import json
 
+
 def validate_jwt(self, response, username):
+
+    jwt_key = "TODO_CHANGEME_KEY"
 
     self.assertIn('jwt', response.cookies)
 
     jwt_cookie = response.cookies["jwt"]
-    decoded_token = jwt.decode(jwt_cookie.value, "TODO_CHANGEME_KEY", algorithms=["HS256"])
+    decoded_token = jwt.decode(jwt_cookie.value, jwt_key, algorithms=["HS256"])
     self.assertEqual(username, decoded_token['username'])
 
     self.assertEqual(jwt_cookie["httponly"], True)
@@ -70,7 +73,7 @@ class RegistrationEmailTest(APITestCase):
         self.assertIn('Account already registered with this email address.', response.data['detail'])
 
 
-class UserRegistrationAPIViewTest(APITestCase):
+class UserRegistrationViewTest(APITestCase):
 
     # Resets the state of the client between tests
     def setUp(self):
@@ -130,7 +133,7 @@ class UserRegistrationAPIViewTest(APITestCase):
         existing_user.refresh_from_db()
         self.assertEqual(existing_user.username, 'existing_user')  # Ensure the username remains the same
 
-class UserLoginAPIViewTest(APITestCase):
+class UserLoginViewTest(APITestCase):
     # Resets client between tests and creates a new user.
     def setUp(self):
         self.client = APIClient()
@@ -221,6 +224,36 @@ class UserResetPasswordAPIViewTestCase(TestCase):
 
         # Check if the response status code is 404 Not Found
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class UserLogoutViewTest(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_logout(self):
+
+        # Create an account and set the JWT to its value.
+        self.username ='test_user'
+        self.user = User.objects.create_user(username=self.username, password='test_password')
+        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
+
+        # Log out and ensure the JWT has been cleared.
+        response = self.client.post(reverse('logout'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('', response.cookies["jwt"].value)
+
+    def test_logout_no_jwt(self):
+
+        # Try to log out without being logged in.
+        response = self.client.post(reverse('logout'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_logout_invalid_jwt(self):
+
+        # Try to log out with a JWT that doesn't correspond to a user.
+        self.client.cookies = SimpleCookie({'jwt': "invalid_JWT"})
+        response = self.client.post(reverse('logout'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 class DocsCreateRetrieveViewTest(APITestCase):
     def setUp(self):

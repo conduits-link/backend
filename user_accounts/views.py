@@ -22,6 +22,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 import jwt
+from jwt.exceptions import DecodeError
+
 import datetime
 
 import os
@@ -109,42 +111,42 @@ def decode_jwt_token(request):
 
     token = request.COOKIES.get('jwt')
 
-    if token:
+    if token is None:
+        return None
+
+    try:
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])
-        return decoded_token['username']
+        return decoded_token.get('username')
     
-    return None
+    except DecodeError:
+        return None
+    
 
 def login(request, success_message, success_status):
     """
     request.data must include username and password.
     """
-    try:
-        # Serialize and validate the incoming login data
-        serializer = UserAuthSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    # Serialize and validate the incoming login data
+    serializer = UserAuthSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-        username = serializer.validated_data['username']
+    username = serializer.validated_data['username']
 
-        # Authenticate user
-        user = authenticate(request, username=username,
-                            password=serializer.validated_data['password'])
+    # Authenticate user
+    user = authenticate(request, username=username,
+                        password=serializer.validated_data['password'])
 
-        if user is not None:
+    if user is not None:
 
-            response_data = {'detail': success_message}
-            response = Response(response_data, status=success_status)
+        response_data = {'detail': success_message}
+        response = Response(response_data, status=success_status)
 
-            return encode_jwt_token(response, username)
+        return encode_jwt_token(response, username)
 
-        else:
-            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
-    except Exception as e:
-        # Handle any exceptions or errors during login
-        return Response({"detail": f"Error during login: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
 
-
-class RegistrationEmailAPIView(APIView):
+class RegistrationEmailView(APIView):
     def post(self, request):
         email = request.data.get('email')
 
@@ -170,44 +172,60 @@ class RegistrationEmailAPIView(APIView):
     def get(self, request):
         return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     
-class UserRegistrationAPIView(APIView):
+class UserRegistrationView(APIView):
     def post(self, request, pk):
-        try:
-            # Decode the UID to get the email address
-            email = force_str(urlsafe_base64_decode(pk))
+        # Decode the UID to get the email address
+        email = force_str(urlsafe_base64_decode(pk))
 
-            if not is_valid_email(email):
-                return Response(status=status.HTTP_404_NOT_FOUND)
+        if not is_valid_email(email):
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-            if is_existing_user(email):
-                return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_400_BAD_REQUEST)
+        if is_existing_user(email):
+            return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Serialize and validate the incoming data
-            serializer = UserAuthSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+        # Serialize and validate the incoming data
+        serializer = UserAuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
+        # Create a new user
+        User.objects.create_user(username=serializer.validated_data['username'],
+                                        email=email,
+                                        password=serializer.validated_data['password'])
+        # Login to the account
+        return login(request, "Account created successfully. You have been logged in.", status.HTTP_201_CREATED)
+    
 
-            # Create a new user
-            user = User.objects.create_user(username=serializer.validated_data['username'],
-                                            email=email,
-                                            password=serializer.validated_data['password'])
-            # Login to the account
-            return login(request, "Account created successfully. YOu have been logged in.", status.HTTP_201_CREATED)
-        
-        except Exception as e:
-            # Handle any exceptions or errors during account creation
-            print(f"Error creating account: {str(e)}")
-            return Response({"detail": f"Error creating account: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class UserLoginAPIView(APIView):
+class UserLoginView(APIView):
     def post(self, request):
         return login(request, "Login successful.", status.HTTP_200_OK)
     
-class UserLogoutAPIView(APIView):
+class UserLogoutView(APIView):
     def post(self, request):
-        return login(request, "Login successful.", status.HTTP_200_OK)
 
-class UserForgotAPIView(APIView):
+        user = decode_jwt_token(request)
+
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        response = Response({"message": "You have been logged out."}, status=status.HTTP_200_OK)
+
+        # Set JWT token as a cookie
+        response.set_cookie(
+            key='jwt', 
+            value='', 
+            httponly=True, 
+            samesite='None', 
+            domain='.conduits.link', 
+            secure=True, 
+            path="/"
+        )
+
+        return response
+
+
+
+class UserForgotView(APIView):
     
     def post(self, request):
         email = request.data.get('email')
@@ -231,7 +249,7 @@ class UserForgotAPIView(APIView):
 
         return Response({"message": "If email was valid, reset password link has been sent."}, status=status.HTTP_200_OK)
          
-class UserResetPasswordAPIView(APIView):
+class UserResetPasswordView(APIView):
     def post(self, request, pk):
         # Decode the UID to get the email address
         email = force_str(urlsafe_base64_decode(pk))

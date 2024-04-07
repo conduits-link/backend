@@ -35,13 +35,14 @@ import logging
 
 load_dotenv()
 
+site_domain = 'conduits.link'
+
 def send_mailgun_email(recipient_emails, subject, message):
     """
     recipient_emails is a list of emails.
     """
 
     mailgun_domain = os.getenv("MAILGUN_DOMAIN")
-    site_domain = os.getenv("SITE_DOMAIN")
 
     if mailgun_domain is not None:
         email_response = requests.post(
@@ -201,6 +202,10 @@ class UserRegistrationAPIView(APIView):
 class UserLoginAPIView(APIView):
     def post(self, request):
         return login(request, "Login successful.", status.HTTP_200_OK)
+    
+class UserLogoutAPIView(APIView):
+    def post(self, request):
+        return login(request, "Login successful.", status.HTTP_200_OK)
 
 class UserForgotAPIView(APIView):
     
@@ -216,7 +221,7 @@ class UserForgotAPIView(APIView):
             uid = urlsafe_base64_encode(force_bytes(email))
 
             # Create reset password link with UID as string
-            reset_link = "https://www." + os.getenv("SITE_DOMAIN") + "/forgot/" + uid
+            reset_link = "https://www." + site_domain + "/forgot/" + uid
 
             # Send email
             subject = 'Conduit - Reset Password Request.'

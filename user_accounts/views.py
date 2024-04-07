@@ -231,8 +231,6 @@ class UserResetPasswordAPIView(APIView):
         # Decode the UID to get the email address
         email = force_str(urlsafe_base64_decode(pk))
 
-        print(email)
-
         if not is_valid_email(email) or not is_existing_user(email):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
@@ -242,6 +240,7 @@ class UserResetPasswordAPIView(APIView):
         user = User.objects.get(email=email)
 
         user.set_password(request.data["password"])
+        user.save()
 
         return Response(status=status.HTTP_200_OK)
         

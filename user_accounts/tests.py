@@ -182,9 +182,9 @@ class UserForgotAPIViewTestCase(TestCase):
 class UserResetPasswordAPIViewTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
-        email= 'test@example.com'
-        self.user = User.objects.create_user(username='test_user', email=email, password='old_password')
-        self.uid = urlsafe_base64_encode(force_bytes(email))
+        self.email = 'test@example.com'
+        self.user = User.objects.create_user(username='test_user', email=self.email, password='old_password')
+        self.uid = urlsafe_base64_encode(force_bytes(self.email))
 
     def test_user_reset_password(self):
         
@@ -194,8 +194,7 @@ class UserResetPasswordAPIViewTestCase(TestCase):
         # Send POST request to the view
         response = self.client.post(reverse('reset', kwargs={'pk': self.uid}), data)
 
-        # Check if the password was updated
-        updated_user = User.objects.get(pk=self.user.pk)
+        updated_user = User.objects.get(email=self.email)
         self.assertTrue(updated_user.check_password('new_password'))
 
         # Check the response status code

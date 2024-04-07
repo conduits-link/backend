@@ -7,10 +7,24 @@ from rest_framework.test import APIClient, APITestCase
 from django.http.cookie import SimpleCookie
 
 from .views import generate_jwt_token
+import jwt
 
 from .models import User, EditorFile
 
 import json
+
+def validate_jwt(self, response, username):
+
+    self.assertIn('jwt', response.cookies)
+
+    jwt_cookie = response.cookies["jwt"]
+    decoded_token = jwt.decode(jwt_cookie.value, "TODO_CHANGEME_KEY", algorithms=["HS256"])
+    self.assertEqual(username, decoded_token['username'])
+
+    self.assertEqual(jwt_cookie["httponly"], True)
+    self.assertEqual(jwt_cookie["samesite"], 'None')
+    self.assertEqual(jwt_cookie["secure"], True)
+    self.assertEqual(jwt_cookie["domain"], ".conduits.link")
 
 
 # Tests the registration email view executes correctly.
@@ -33,8 +47,7 @@ class RegistrationEmailTest(APITestCase):
         data = {'email': 'invalid_email'}
         response = self.client.post(reverse('register-email'), data)
 
-        # Check if the response status code is HTTP 401 Unauthorized
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Check if the response includes the expected detail message
         self.assertIn('Invalid email address.', response.data['detail'])
@@ -51,8 +64,7 @@ class RegistrationEmailTest(APITestCase):
         data = {'email': email}
         response = self.client.post(reverse('register-email'), data)
 
-        # Check if the response status code is HTTP 401 Unauthorized
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Check if the response includes the expected detail message
         self.assertIn('Account already registered with this email address.', response.data['detail'])
@@ -85,7 +97,9 @@ class UserRegistrationAPIViewTest(APITestCase):
         # Check if the user is actually created in the database
         user = User.objects.filter(email=email).first()
         self.assertIsNotNone(user)
-        self.assertEqual(user.username, 'test_user')  # Assuming your serializer assigns a default username
+        self.assertEqual(user.username, 'test_user') 
+
+        validate_jwt(self, response, user.username)
 
     def test_invalid_registration_link(self):
         registration_link = self.get_register_link("invalid_email")
@@ -95,7 +109,7 @@ class UserRegistrationAPIViewTest(APITestCase):
             {'username': 'test_user', 'password': 'test_password'}
         )
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('Invalid registration link.', response.data['detail'])
 
     def test_user_registration_existing_user(self):
@@ -110,7 +124,7 @@ class UserRegistrationAPIViewTest(APITestCase):
             {'username': 'test_user', 'password': 'test_password'}
         )
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('Account already registered with this email address.', response.data['detail'])
 
         # Ensure that the existing user is not modified

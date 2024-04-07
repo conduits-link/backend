@@ -102,25 +102,50 @@ def decode_jwt_token(request):
 
     token = request.COOKIES.get('jwt')
 
-    logger = logging.getLogger('defaultlogger')
-    logger.info('token:')
-    logger.info(token)
-
     if token:
         decoded_token = jwt.decode(token, key, algorithms=["HS256"])
         return decoded_token['username']
     
     return None
 
+def login(request, success_message, success_status):
+    """
+    request.data must include username and password.
+    """
+    try:
+        # Serialize and validate the incoming login data
+        serializer = UserAuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        username = serializer.validated_data['username']
+
+        # Authenticate user
+        user = authenticate(request, username=username,
+                            password=serializer.validated_data['password'])
+
+        if user is not None:
+
+            response_data = {'detail': success_message}
+            response = Response(response_data, status=success_status)
+
+            return encode_jwt_token(response, username)
+
+        else:
+            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        # Handle any exceptions or errors during login
+        return Response({"detail": f"Error during login: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class RegistrationEmailAPIView(APIView):
     def post(self, request):
         email = request.data.get('email')
 
         if not is_valid_email(email):
-            return Response({'detail': 'Invalid email address.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if is_existing_user(email):
-            return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Generate UID as string
         uid = urlsafe_base64_encode(force_bytes(email))
@@ -137,7 +162,7 @@ class RegistrationEmailAPIView(APIView):
 
         if email_response is None or email_response.status_code != 200:
             return Response({"message": "Internal server error occurred while sending email"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'message': 'Email sent successfully'})
+        return Response({'message': 'Email sent successfully'}, status.HTTP_202_ACCEPTED)
 
     def get(self, request):
         return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -149,10 +174,10 @@ class UserRegistrationAPIView(APIView):
             email = force_str(urlsafe_base64_decode(pk))
 
             if not is_valid_email(email):
-                return Response({"detail": "Invalid registration link."}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"detail": "Invalid registration link."}, status=status.HTTP_400_BAD_REQUEST)
 
             if is_existing_user(email):
-                return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Serialize and validate the incoming data
             serializer = UserAuthSerializer(data=request.data)
@@ -163,9 +188,8 @@ class UserRegistrationAPIView(APIView):
             user = User.objects.create_user(username=serializer.validated_data['username'],
                                             email=email,
                                             password=serializer.validated_data['password'])
-
-            # Return a success response
-            return Response({"detail": "Account created successfully."}, status=status.HTTP_201_CREATED)
+            # Login to the account
+            return login(request, "Account created successfully. YOu have been logged in.", status.HTTP_201_CREATED)
         
         except Exception as e:
             # Handle any exceptions or errors during account creation
@@ -173,32 +197,8 @@ class UserRegistrationAPIView(APIView):
             return Response({"detail": f"Error creating account: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserLoginAPIView(APIView):
-   
     def post(self, request):
-
-        try:
-            # Serialize and validate the incoming login data
-            serializer = UserAuthSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-
-            username = serializer.validated_data['username']
-
-            # Authenticate user
-            user = authenticate(request, username=username,
-                                password=serializer.validated_data['password'])
-
-            if user is not None:
-
-                response_data = {'detail': 'Login successful.'}
-                response = Response(response_data)
-
-                return encode_jwt_token(response, username)
-
-            else:
-                return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
-        except Exception as e:
-            # Handle any exceptions or errors during login
-            return Response({"detail": f"Error during login: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return login(request, "Login successful.", status.HTTP_200_OK)
 
 class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
     """
@@ -235,12 +235,6 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
 
         user = decode_jwt_token(request)
 
-        logger = logging.getLogger('defaultlogger')
-        logger.info('Get log')
-        logger.info('user:')
-        logger.info(user)
-
-
         if user is None:
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -251,18 +245,6 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
 
         # Serialize the queryset
         serializer = FileListSerializer(queryset, many=True)
-        logger.info("serializer:")
-        logger.info(serializer)
-
-        logger.info("serializer.data:")
-        logger.info(serializer.data)
-
-        logger.info("Response:")
-        logger.info(Response({"files": serializer.data}))
-
-        logger.info("Response data:")
-        logger.info(Response({"files": serializer.data}).data)
-    
 
         # Return the serialized data in the desired format
         return Response({"files": serializer.data})

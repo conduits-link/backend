@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, NotFound
 from rest_framework.decorators import api_view
@@ -275,7 +275,7 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
     POST: Create a new document for the authenticated user.
     """
     queryset = EditorFile.objects.all()
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def get_serializer_class(self):
         """
@@ -322,27 +322,32 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         Handle POST requests to create a new document for the currently authenticated user.
         """
         # Decode JWT token
-        user = decode_jwt_token(request)
+        username = decode_jwt_token(request)
         
-        if user is None:
+        if username is None:
             # Token authentication failed
-            return Response({"error": "Unauthorized"}, status=401)
-
-        # Call the create method to create and return a new document
-        return self.create(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        """
-        Associate the created document with the currently authenticated user.
-        """
-        user = decode_jwt_token(self.request)
-        
-        if user is None:
-            # Token authentication failed
-            raise PermissionDenied("You are not authenticated")
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Associate the document with the currently authenticated user
-        serializer.save(author=user)
+        request.data['author'] = username
+
+        now = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        request.data['created'] = now
+        request.data['modified'] = now
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # Construct the response in the specified format
+        response_data = {
+            "doc": {
+                "uid": str(serializer.instance.uid),
+                "created": now,
+                "modified": now
+            }
+        }
+        return Response(response_data, status=201)
 
 
 class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):

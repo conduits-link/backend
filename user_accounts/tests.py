@@ -303,17 +303,35 @@ class DocsCreateRetrieveViewTest(APITestCase):
 
     def test_post_create_new_doc(self):
         # Data for creating a new document
-        data = {'title': 'New Document', 'body': 'Hello World'}
+        data = {'title': 'New Document', 'body': [{'test': 'Hello World'}]}
 
         # Send a POST request to create a new document
-        response = self.client.post(reverse('create-view-docs'), data)
+        response = self.client.post(reverse('create-view-docs'), data, format='json')
 
         # Check if the response is successful (HTTP 201 Created)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Check if the serializer used for the response is the correct one
+        # Check if the response data is stored in "doc" key.
         self.assertIsInstance(response.data, dict)
-        self.assertEqual(response.data['title'], 'New Document')
+        self.assertIn('doc', response.data)
+
+        doc_data = response.data['doc']
+
+        # Check the structure and content of the 'doc' dictionary
+        self.assertIsInstance(doc_data, dict)
+        self.assertIn('uid', doc_data)
+        self.assertIn('created', doc_data)
+        self.assertIn('modified', doc_data)
+
+        # Check response matches expected values
+        self.assertEqual(doc_data['created'], doc_data['modified'])
+
+        # Retrieve EditorFile object corresponding to response UID
+        editor_file = EditorFile.objects.get(uid=doc_data['uid'])
+
+        # Check if the attributes of the EditorFile object match the expected values
+        self.assertEqual(editor_file.title, 'New Document')
+        self.assertEqual(editor_file.body, [{'test': 'Hello World'}])
 
     def test_get_empty_docs_list(self):
         # Send a GET request to retrieve the list of documents for a user with no documents

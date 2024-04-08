@@ -6,10 +6,12 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from django.http.cookie import SimpleCookie
 
-from .views import generate_jwt_token
+from .views import generate_jwt_token, encode_password_reset_uid, decode_password_reset_uid
 import jwt
 
 from .models import User, EditorFile
+
+import datetime
 
 import json
 
@@ -187,11 +189,10 @@ class UserResetPasswordAPIViewTestCase(TestCase):
         self.client = APIClient()
         self.email = 'test@example.com'
         self.user = User.objects.create_user(username='test_user', email=self.email, password='old_password')
-        self.uid = urlsafe_base64_encode(force_bytes(self.email))
+        self.uid = encode_password_reset_uid(self.email)
 
     def test_user_reset_password(self):
         
-        # Data for the request
         data = {'password': 'new_password'}
 
         # Send POST request to the view
@@ -204,7 +205,7 @@ class UserResetPasswordAPIViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_user_reset_password_no_password(self):
-        # Data for the request
+        # Data for the request, without required password field
         data = {}
 
         # Send POST request to the view without providing a password
@@ -212,18 +213,33 @@ class UserResetPasswordAPIViewTestCase(TestCase):
 
         # Check if the response status code is 400 Bad Request
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["detail"], 'No password provided.')
+
 
     def test_user_reset_password_invalid_email(self):
-        # Data for the request
+
         data = {'password': 'new_password'}
 
-        broken_uid = urlsafe_base64_encode(force_bytes("not_an_email"))
+        invalid_email_uid = encode_password_reset_uid("not_an_email")
 
         # Send POST request to the view with an invalid email
-        response = self.client.post(reverse('reset', kwargs={'pk': broken_uid}), data)
+        response = self.client.post(reverse('reset', kwargs={'pk': invalid_email_uid}), data)
 
         # Check if the response status code is 404 Not Found
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_user_reset_password_invalid_date(self):
+        invalid_date_uid = urlsafe_base64_encode(force_bytes(self.email+ '|1970-01-01 00:00:00'))
+
+        data = {'password': 'new_password'}
+
+        # Send POST request to the view with an invalid email
+        response = self.client.post(reverse('reset', kwargs={'pk': invalid_date_uid}), data)
+
+        # Check if the response status code is 400 Bad Request
+        self.assertEqual(response.status_code, status.HTTP_410_GONE)
+        self.assertEqual(response.data["detail"], "Sorry, this link has expired.")
+
 
 class UserLogoutViewTest(APITestCase):
     def setUp(self):

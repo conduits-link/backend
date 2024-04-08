@@ -224,6 +224,18 @@ class UserLogoutView(APIView):
         return response
 
 
+def encode_password_reset_uid(email):
+
+    # Get time of request, so we can set URL expiry time.
+    now = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+    return urlsafe_base64_encode(force_bytes(email + '|' + now))
+
+def decode_password_reset_uid(uid):
+    """
+    Returns (email, creation date of URL).
+    """
+    return force_str(urlsafe_base64_decode(uid)).split('|')
 
 class UserForgotView(APIView):
     
@@ -235,8 +247,7 @@ class UserForgotView(APIView):
         
         if is_existing_user(email):
 
-            # Generate UID as string
-            uid = urlsafe_base64_encode(force_bytes(email))
+            uid = encode_password_reset_uid(email)
 
             # Create reset password link with UID as string
             reset_link = "https://www." + site_domain + "/forgot/" + uid
@@ -251,14 +262,17 @@ class UserForgotView(APIView):
          
 class UserResetPasswordView(APIView):
     def post(self, request, pk):
-        # Decode the UID to get the email address
-        email = force_str(urlsafe_base64_decode(pk))
 
+        email, date = decode_password_reset_uid(pk)
+        
         if not is_valid_email(email) or not is_existing_user(email):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if "password" not in request.data:
             return Response({'detail': 'No password provided.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if date < str(datetime.datetime.now() - datetime.timedelta(days=1)):
+            return Response({'detail': 'Sorry, this link has expired.'}, status=status.HTTP_410_GONE)
 
         user = User.objects.get(email=email)
 

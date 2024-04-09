@@ -371,6 +371,12 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         # Create a test document associated with the user
         self.doc = EditorFile.objects.create(author=self.user, title='Test Document', body='Lorem Ipsum')
 
+        # Create another account for authorization testing
+        another_username = 'another_user'
+        User.objects.create_user(username=another_username, password='another_password')
+
+        self.another_jwt = SimpleCookie({'jwt': generate_jwt_token(another_username)})
+
     def test_get_selected_doc(self):
         # Send a GET request to retrieve the selected document
         response = self.client.get(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
@@ -382,6 +388,15 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         self.assertIsInstance(response.data, dict)
 
         self.assertEqual(response.data['doc']['title'], 'Test Document')
+    
+    def test_get_selected_doc_wrong_user(self):
+        # Log into another account
+        self.client.cookies = self.another_jwt
+
+        # Send a GET request to retrieve the selected document, but it should fail due to permission denied
+        response = self.client.get(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_update_selected_doc(self):
         # Data for updating the document
@@ -405,6 +420,26 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         # Check updates have been made
         self.assertEqual(updated_doc.title, 'Updated Document')
         self.assertEqual(updated_doc.body, 'Updated Content')
+
+    def test_update_selected_doc_wrong_user(self):
+
+        # Log into another account
+        self.client.cookies = self.another_jwt
+
+        updated_data = {'doc': {'title': 'Updated Document', 'body': 'Updated Content'}}
+
+        # Send a PUT request to update the selected document, but it should fail due to permission denied
+        response = self.client.put(reverse('edit-doc', kwargs={'pk': self.doc.pk}), updated_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Retrieve the document from the database
+        doc = EditorFile.objects.get(pk=self.doc.pk)
+
+        # Check if the document still has the original title
+        self.assertEqual(doc.title, 'Test Document')
+        self.assertEqual(doc.body, 'Lorem Ipsum')
+
 
     def test_delete_selected_doc(self):
         # Send a DELETE request to delete the selected document
@@ -436,17 +471,14 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
 
     def test_delete_selected_doc_wrong_user(self):
-        # Create a new user
-        another_username = 'another_user'
-        another_user = User.objects.create_user(username=another_username, password='another_password')
 
-        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(another_username)})
+        # Log into another account
+        self.client.cookies = self.another_jwt
 
         # Send a DELETE request to delete the selected document, but it should fail due to permission denied
         response = self.client.delete(reverse('edit-doc', kwargs={'pk': self.doc.pk}))
 
-        # Check if the response is a permission denied error (HTTP 403 Forbidden)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         # Check if the document still exists
         self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())

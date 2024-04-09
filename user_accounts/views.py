@@ -389,12 +389,17 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        try:
-            instance = self.get_object()
-            serializer = self.get_serializer(instance)
-            return Response({"doc": serializer.data}, status=200)
-        except NotFound:
+        instance = self.get_object()
+
+        if instance.author != user:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        if instance is None:
             return Response({"error": "The doc was not found."}, status=404)
+
+        serializer = self.get_serializer(instance)
+        return Response({"doc": serializer.data}, status=200)
+
         
     def put(self, request, *args, **kwargs):
         """
@@ -407,15 +412,23 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"error": "Unauthorized"}, status=401)
 
         instance = self.get_object()
+
+        if instance.author != user:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         serializer = self.get_serializer(instance, data=request.data.get('doc'), partial=True)
-        try:
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response({"doc": {"modified": instance.modified}}, status=200)
-        except ValidationError:
+
+        if not serializer.is_valid():
             return Response({"error": "The client did not provide the correct data, and the doc was not updated."}, status=400)
-        except NotFound:
+
+        instance = self.get_object()
+
+        if instance is None:
             return Response({"error": "The doc was not found."}, status=404)
+
+        serializer.save()
+        return Response({"doc": {"modified": instance.modified}}, status=200)
+
 
     def delete(self, request, *args, **kwargs):
         """
@@ -428,11 +441,12 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"error": "Unauthorized"}, status=401)
 
         instance = self.get_object()
-        if instance.author == user:
-            instance.delete()
-            return Response({"message": "The doc was removed."}, status=200)
-        else:
-            return Response({"error": "You do not have permission to delete this document."}, status=403)
+
+        if instance.author != user:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
+        instance.delete()
+        return Response({"message": "The doc was removed."}, status=200)
 
 # Performs LLM inference on text provided.
 # TODO : We need to set this up with our LLM.

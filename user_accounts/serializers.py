@@ -8,12 +8,12 @@ class UserAuthSerializer(serializers.Serializer):
 class FileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = EditorFile
-        fields = ('title', 'body', "created", 'modified')    
+        fields = ('title', 'body', 'created', 'modified')    
 
 class FileCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = EditorFile
-        fields = ('title', 'body')    
+        fields = ('title', 'body', 'author', 'created', 'modified')    
 
 class FilePatchSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,4 +23,4 @@ class FilePatchSerializer(serializers.ModelSerializer):
 class FileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = EditorFile
-        fields = ('uid', 'title', 'body', "created", 'modified') 
+        fields = ('uid', 'title', 'body', 'created', 'modified') 

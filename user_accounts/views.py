@@ -341,15 +341,20 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
         if username is None:
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Associate the document with the currently authenticated user
-        request.data['author'] = username
+        
+        doc_data = request.data['doc']
 
         now = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        request.data['created'] = now
-        request.data['modified'] = now
 
-        serializer = self.get_serializer(data=request.data)
+        creation_data = {
+                'author': username,
+                'title': doc_data['title'],
+                'body': doc_data['body'],
+                'created': now,
+                'modified': now
+        }
+
+        serializer = self.get_serializer(data=creation_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 

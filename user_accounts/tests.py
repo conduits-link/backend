@@ -319,7 +319,7 @@ class DocsCreateRetrieveViewTest(APITestCase):
 
     def test_post_create_new_doc(self):
         # Data for creating a new document
-        data = {'title': 'New Document', 'body': [{'test': 'Hello World'}]}
+        data = {"doc": {'title': 'New Document', 'body': [{'test': 'Hello World'}]}}
 
         # Send a POST request to create a new document
         response = self.client.post(reverse('create-view-docs'), data, format='json')

@@ -30,6 +30,8 @@ import os
 import requests
 from dotenv import load_dotenv
 
+from openai import OpenAI
+
 import logging
 # To use:
 # logger = logging.getLogger('defaultlogger')
@@ -449,36 +451,47 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         return Response({"message": "The doc was removed."}, status=200)
 
 # Performs LLM inference on text provided.
-# TODO : We need to set this up with our LLM.
-@api_view(['POST'])
-def generate_text(request):
+class GenerateTextView(APIView):
     """
     Handles endpoint for /generate/text : POST
     requests a generative model to generate text, given a prompt.
     """
+    def post(self, request):
+        # Extract data from the request
+        data = request.data
+        prompt_name = data.get('prompt', {}).get('name', '')
+        messages = data.get('prompt', {}).get('messages', [])
 
-    # Extract data from the request
-    data = request.data
-    prompt_name = data.get('prompt', {}).get('name', '')
-    messages = data.get('prompt', {}).get('messages', [])
+        if not messages:
+            return Response({"error": "Messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not messages:
-        return Response({"error": "Messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
+        client = OpenAI()
 
-    # Extract the first message
-    first_message = messages[0]
-    role = first_message.get("role", "")
-    content = first_message.get("content", "")
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            temperature=0.7,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
+            max_tokens=200,
+            stream=False, # should use instead of loading icon
+            n=1
+        )
 
-    # TODO: Perform inference with your generative model using prompt_name and messages
+        answer = completion.choices[0].message.content
 
-    # Create a response data dictionary
-    response_data = {
-        "message": "Text generated successfully",
-        "prompt": {
-            "name": prompt_name,
-            "messages": messages
+        response = {
+            "message": "Text generated successfully",
+            "prompt": {
+                "name": prompt_name,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": answer
+                    }
+                ]
+            }
         }
-    }
 
-    return Response(response_data, status=status.HTTP_200_OK)
+        return Response(response, status=status.HTTP_200_OK)

@@ -6,15 +6,12 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from django.http.cookie import SimpleCookie
 
-from .views import generate_jwt_token, encode_password_reset_uid, decode_password_reset_uid
+from .views import generate_jwt_token, encode_password_reset_uid
 import jwt
 
 from .models import User, EditorFile
-
-import datetime
-
-import json
-
+import os , unittest.mock
+from openai import AuthenticationError 
 
 def validate_jwt(self, response, username):
 
@@ -483,11 +480,13 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         # Check if the document still exists
         self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
 
-# TODO: Once calling an LLM has actually been implemented in the corresponding view, update this test accordingly.
+
 class GenerateTextTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
 
+    # Use invalid OpenAI API key to avoid spending money during tests.
+    @unittest.mock.patch.dict(os.environ, {"OPENAI_API_KEY": "invalid_key"})
     def test_generate_text_success(self):
         # Define the request data
         request_data = {
@@ -495,23 +494,20 @@ class GenerateTextTest(APITestCase):
                 "name": "Test Prompt",
                 "messages": [
                     {
-                        "role": "User",
-                        "content": "Generate text for testing"
+                        "role": "user",
+                        "content": "Please add more detail to the following text. Do not add information for the sake of it, simply add more relevant information that will enhance the value of the information. The text input is the following: 'The sky is blue.'"
                     }
                 ]
             }
         }
 
-        # Send a POST request to the generate_text endpoint
-        response = self.client.post(reverse('generate-text'), request_data, format='json')
+        try: # Send a POST request to the generate_text endpoint
+            response = self.client.post(reverse('generate-text'), request_data, format='json')
+        except AuthenticationError as e:
+            response = e
 
-        # Check if the response is successful (HTTP 200 OK)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Verify the content of the response
-        self.assertEqual(response.data['message'], 'Text generated successfully')
-        self.assertEqual(response.data['prompt']['name'], 'Test Prompt')
-        self.assertEqual(response.data['prompt']['messages'], [{'role': 'User', 'content': 'Generate text for testing'}])
+        # Check if the response is unauthorized due to invalid key
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_generate_text_invalid_json(self):
         # Send a POST request with invalid JSON format

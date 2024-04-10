@@ -31,10 +31,12 @@ jobs:
         DATABASE_URL:     ${{ secrets.DATABASE_URL }}
         MAILGUN_API_KEY:  ${{ secrets.MAILGUN_API_KEY }}
         MAILGUN_DOMAIN:   ${{ secrets.MAILGUN_DOMAIN }}
+        OPENAI_API_KEY:   ${{ secrets.OPENAI_API_KEY }}
       run: |
         echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
         echo "MAILGUN_API_KEY=$MAILGUN_API_KEY" >> $GITHUB_ENV
         echo "MAILGUN_DOMAIN=$MAILGUN_DOMAIN" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> $GITHUB_ENV
         
     - name: Database migration
       run: |

@@ -527,7 +527,7 @@ class UserCreditsView(APIView):
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=401)
     
-        payment_amount = request.data.get('payment_amount')
+        payment_amount = request.data.get('credits')
 
         if not isinstance(payment_amount, (int, float)) or isinstance(payment_amount, bool) or payment_amount is None or payment_amount <= 0:
 

@@ -547,7 +547,7 @@ class UserCreditsTestCase(APITestCase):
 
         payment = 10
 
-        response = self.client.post(reverse('credits'), json.dumps({'payment_amount': payment}), content_type='application/json')
+        response = self.client.post(reverse('credits'), json.dumps({'credits': payment}), content_type='application/json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -556,7 +556,7 @@ class UserCreditsTestCase(APITestCase):
         self.assertEqual(payment, response.data['credits'], self.user.credits)
 
     def test_post_credits_unauthenticated(self):
-        response = self.client.post(reverse('credits'), {'payment_amount': 10})
+        response = self.client.post(reverse('credits'), {'credits': 10})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_invalid_payment_amount(self):
@@ -565,8 +565,8 @@ class UserCreditsTestCase(APITestCase):
         response = self.client.post(reverse('credits'), {})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.client.post(reverse('credits'), {'payment_amount': -10.4})
+        response = self.client.post(reverse('credits'), {'credits': -10.4})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.client.post(reverse('credits'), {'payment_amount': 'abc'})
+        response = self.client.post(reverse('credits'), {'credits': 'abc'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

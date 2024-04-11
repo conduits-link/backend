@@ -174,8 +174,8 @@ class RegistrationEmailView(APIView):
         registration_link = "https://www.conduits.link/register/" + uid
 
         # Send email
-        subject = 'Account Registration'
-        message = f'Click the following link to create your account:\n\n<a href="{registration_link}">{registration_link}</a>'
+        subject = 'Conduit Account Registration'
+        message = f'Click the following link to create your Conduit account:<br><br><a href="{registration_link}">{registration_link}</a>'
         recipient_list = [email]
 
         return send_mailgun_email(recipient_list, subject, message)
@@ -265,7 +265,7 @@ class UserForgotView(APIView):
 
             # Send email
             subject = 'Conduit - Reset Password Request.'
-            message = f'We received a request to reset your Conduit password. Please click the following link tp reset it:\n\n<a href="{reset_link}">{reset_link}</a>\n\nIf you did not make this request, please disregard this email.'
+            message = f'We received a request to reset your Conduit password. Please click the following link to reset it:<br><br><a href="{reset_link}">{reset_link}</a><br><br>If you did not make this request, please disregard this email.'
             recipient_list = [email]
             send_mailgun_email(recipient_list, subject, message)
 

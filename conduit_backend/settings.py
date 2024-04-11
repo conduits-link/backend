@@ -185,8 +185,8 @@ REST_FRAMEWORK = {
 # CORS Headers settings
 
 CORS_ALLOWED_ORIGINS = [
-    'http://www.conduits.link',
-    'https://www.conduits.link',    
+    'http://app.conduits.link',
+    'https://app.conduits.link',    
     'http://api.conduits.link',
     'https://api.conduits.link',
     # TESTING: Allow local Next.js Conduit frontend URL

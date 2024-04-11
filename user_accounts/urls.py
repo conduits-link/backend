@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegistrationEmailView, UserRegistrationView, UserLoginView, UserLogoutView, UserForgotView, UserResetPasswordView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, GenerateTextView
+from .views import RegistrationEmailView, UserRegistrationView, UserLoginView, UserLogoutView, UserForgotView, UserResetPasswordView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, GenerateTextView, UserCreditsView
 
 # Endpoints given in 
 # https://github.com/dan-smith-tech/conduit/blob/main/docs/api.md
@@ -27,5 +27,12 @@ urlpatterns = [
     # AI controller #
     #################   
     path('generate/text', GenerateTextView.as_view(), name='generate-text'), 
+
+    ############
+    # Payments #
+    ############
+
+    path('credits', UserCreditsView.as_view(), name='credits'), 
+
 
 ]

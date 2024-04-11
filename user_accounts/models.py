@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import AbstractUser 
+from django.core.validators import MinValueValidator
 import uuid
 
 class EditorFile(models.Model):
@@ -36,5 +37,8 @@ class EditorFile(models.Model):
 class User(AbstractUser):
     """Class to store user information in our database."""
 
-    # This currently uses the default User class but allows for later customisation without complex database migration issues.
-    pass
+    # Store LLM API credits.
+    credits = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+
+    def __str__(self):
+        return self.username

@@ -71,7 +71,7 @@ def is_valid_email(email):
         return False
     
 # Check if a user with the provided email already exists.
-def is_existing_user(email):
+def is_existing_email(email):
     return User.objects.filter(email=email).first()
 
 
@@ -123,6 +123,15 @@ def decode_jwt_token(request):
     except DecodeError:
         return None
     
+def get_user_from_jwt(request):
+    """
+    Returns the User object corresponding to the JWT, if it exists,
+    or None otherwise.
+    """
+    username = decode_jwt_token(request)
+    return User.objects.filter(username=username).first()
+
+    
 
 def login(request, success_message, success_status):
     """
@@ -155,7 +164,7 @@ class RegistrationEmailView(APIView):
         if not is_valid_email(email):
             return Response({'detail': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        if is_existing_user(email):
+        if is_existing_email(email):
             return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Generate UID as string
@@ -182,7 +191,7 @@ class UserRegistrationView(APIView):
         if not is_valid_email(email):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if is_existing_user(email):
+        if is_existing_email(email):
             return Response({"detail": "Account already registered with this email address."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Serialize and validate the incoming data
@@ -208,9 +217,9 @@ class UserLogoutView(APIView):
 
         if user is None:
             # Token authentication failed
-            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         
-        response = Response({"message": "You have been logged out."}, status=status.HTTP_200_OK)
+        response = Response({"detail": "You have been logged out."}, status=status.HTTP_200_OK)
 
         # Set JWT token as a cookie
         response.set_cookie(
@@ -247,7 +256,7 @@ class UserForgotView(APIView):
         if not is_valid_email(email):
             return Response({'detail': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        if is_existing_user(email):
+        if is_existing_email(email):
 
             uid = encode_password_reset_uid(email)
 
@@ -260,14 +269,14 @@ class UserForgotView(APIView):
             recipient_list = [email]
             send_mailgun_email(recipient_list, subject, message)
 
-        return Response({"message": "If email was valid, reset password link has been sent."}, status=status.HTTP_200_OK)
+        return Response({"detail": "If email was valid, reset password link has been sent."}, status=status.HTTP_200_OK)
          
 class UserResetPasswordView(APIView):
     def post(self, request, pk):
 
         email, date = decode_password_reset_uid(pk)
         
-        if not is_valid_email(email) or not is_existing_user(email):
+        if not is_valid_email(email) or not is_existing_email(email):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if "password" not in request.data:
@@ -321,11 +330,10 @@ class DocsCreateRetrieveView(generics.CreateAPIView, generics.RetrieveAPIView):
 
         if user is None:
             # Token authentication failed
-            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         
         # Retrieve the queryset for the currently authenticated user's documents
         queryset = EditorFile.objects.filter(author=user)
-
 
         # Serialize the queryset
         serializer = FileListSerializer(queryset, many=True)
@@ -389,7 +397,7 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         
         if user is None:
             # Token authentication failed
-            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         instance = self.get_object()
 
@@ -411,7 +419,7 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         
         if user is None:
             # Token authentication failed
-            return Response({"error": "Unauthorized"}, status=401)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         instance = self.get_object()
 
@@ -440,7 +448,7 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         
         if user is None:
             # Token authentication failed
-            return Response({"error": "Unauthorized"}, status=401)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         instance = self.get_object()
 
@@ -448,7 +456,7 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         
         instance.delete()
-        return Response({"message": "The doc was removed."}, status=200)
+        return Response({"detail": "The doc was removed."}, status=200)
 
 # Performs LLM inference on text provided.
 class GenerateTextView(APIView):
@@ -482,7 +490,7 @@ class GenerateTextView(APIView):
         answer = completion.choices[0].message.content
 
         response = {
-            "message": "Text generated successfully",
+            "detail": "Text generated successfully",
             "prompt": {
                 "name": prompt_name,
                 "messages": [
@@ -495,3 +503,38 @@ class GenerateTextView(APIView):
         }
 
         return Response(response, status=status.HTTP_200_OK)
+    
+class UserCreditsView(APIView):
+    """
+    Handle payment details.
+    """
+    def get(self, request):
+
+        user = get_user_from_jwt(request)
+        
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=401)
+        
+        return Response({"credits": user.credits}, status=status.HTTP_200_OK)
+
+
+    def post(self, request):
+
+        user = get_user_from_jwt(request)
+
+        if user is None:
+            # Token authentication failed
+            return Response({"error": "Unauthorized"}, status=401)
+    
+        payment_amount = request.data.get('payment_amount')
+
+        if not isinstance(payment_amount, (int, float)) or isinstance(payment_amount, bool) or payment_amount is None or payment_amount <= 0:
+
+            return Response({"detail": "Payment amount must be a positive number."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.credits += payment_amount
+        user.save()
+        return Response({"credits": user.credits, "detail": "The credits you purchased have been added to your account."}, status=status.HTTP_200_OK)
+
+

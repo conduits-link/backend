@@ -7,7 +7,7 @@ from rest_framework.test import APIClient, APITestCase
 from django.http.cookie import SimpleCookie
 
 from .views import generate_jwt_token, encode_password_reset_uid
-import jwt
+import jwt, json
 
 from .models import User, EditorFile
 import os , unittest.mock
@@ -91,7 +91,7 @@ class UserRegistrationViewTest(APITestCase):
 
         # Simulate following the registration link for the given email address
         response = self.client.post(registration_link,
-            {'username': 'test_user', 'password': 'secure_password'}
+            {'username': 'test_user', 'password': 'test_password'}
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('Account created successfully.', response.data['detail'])
@@ -446,9 +446,9 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check if the message indicates that the document was removed
-        self.assertIn('message', response.data)
+        self.assertIn('detail', response.data)
 
-        self.assertEqual("The doc was removed.", response.data['message'])
+        self.assertEqual("The doc was removed.", response.data['detail'])
 
         # Check if the document has been deleted
         self.assertFalse(EditorFile.objects.filter(pk=self.doc.pk).exists())
@@ -514,4 +514,59 @@ class GenerateTextTest(APITestCase):
         response = self.client.post(reverse('generate-text'), "invalid_json", content_type='application/json')
 
         # Check if the response indicates invalid JSON format (HTTP 400 Bad Request)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class UserCreditsTestCase(APITestCase):
+    def setUp(self):
+        # Create a user for testing
+        self.client = APIClient()
+
+        self.username ='test_user'
+
+        self.user = User.objects.create_user(username=self.username, password='test_password')
+
+    def login(self):
+        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
+
+    def test_get_credits_authenticated(self):
+
+        self.login()
+
+        response = self.client.get(reverse('credits'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.data['credits'], self.user.credits)
+
+    def test_get_credits_unauthenticated(self):
+        response = self.client.get(reverse('credits'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_post_credits_authenticated(self):
+        self.login()
+
+        payment = 10
+
+        response = self.client.post(reverse('credits'), json.dumps({'payment_amount': payment}), content_type='application/json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+
+        self.assertEqual(payment, response.data['credits'], self.user.credits)
+
+    def test_post_credits_unauthenticated(self):
+        response = self.client.post(reverse('credits'), {'payment_amount': 10})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_post_invalid_payment_amount(self):
+        self.login()
+
+        response = self.client.post(reverse('credits'), {})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.post(reverse('credits'), {'payment_amount': -10.4})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.post(reverse('credits'), {'payment_amount': 'abc'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

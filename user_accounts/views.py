@@ -562,3 +562,41 @@ class CreateCheckoutSessionView(APIView):
             return Response({'redirect_url': checkout_session.url}, status=302)
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+@csrf_exempt
+def my_webhook_view(request):
+  payload = request.body
+  sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+  event = None
+
+  endpoint_secret='whsec_0afca699df9d7ee4e19c524b54f43fd9f717258524e23ee0e89c297841ab8419'
+
+  try:
+    event = stripe.Webhook.construct_event(
+      payload, sig_header, endpoint_secret
+    )
+  except ValueError as e:
+    # Invalid payload
+    return Response(status=400)
+  except stripe.error.SignatureVerificationError as e:
+    # Invalid signature
+    return Response(status=400)
+  
+  if event['type'] == 'checkout.session.completed':
+    # Retrieve the session. If you require line items in the response, you may include them by expanding line_items.
+    session = stripe.checkout.Session.retrieve(
+        event['data']['object']['id'],
+        expand
+        =['line_items'],
+    )
+
+    line_items = session.line_items
+    # Fulfill the purchase...
+    fulfill_order(line_items)
+
+  # Passed signature verification
+  return Response(status=200)
+
+def fulfill_order(line_items):
+  # TODO: fill me in
+  print("Fulfilling order")

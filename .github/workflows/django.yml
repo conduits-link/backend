@@ -28,15 +28,19 @@ jobs:
 
     - name: Set up environment variables
       env:
-        DATABASE_URL:     ${{ secrets.DATABASE_URL }}
-        MAILGUN_API_KEY:  ${{ secrets.MAILGUN_API_KEY }}
-        MAILGUN_DOMAIN:   ${{ secrets.MAILGUN_DOMAIN }}
-        OPENAI_API_KEY:   ${{ secrets.OPENAI_API_KEY }}
+        DATABASE_URL:          ${{ secrets.DATABASE_URL }}
+        MAILGUN_API_KEY:       ${{ secrets.MAILGUN_API_KEY }}
+        MAILGUN_DOMAIN:        ${{ secrets.MAILGUN_DOMAIN }}
+        OPENAI_API_KEY:        ${{ secrets.OPENAI_API_KEY }}
+        STRIPE_API_KEY:        ${{ secrets.STRIPE_API_KEY }}
+        STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
       run: |
         echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
         echo "MAILGUN_API_KEY=$MAILGUN_API_KEY" >> $GITHUB_ENV
         echo "MAILGUN_DOMAIN=$MAILGUN_DOMAIN" >> $GITHUB_ENV
         echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> $GITHUB_ENV
+        echo "STRIPE_API_KEY=$STRIPE_API_KEY" >> $GITHUB_ENV
+        echo "STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET" >> $GITHUB_ENV
         
     - name: Database migration
       run: |

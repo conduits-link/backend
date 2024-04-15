@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from django.http.cookie import SimpleCookie
 
-from .views import generate_jwt_token, encode_password_reset_uid
+from .views import generate_jwt_token, encode_password_reset_uid, OrderFulfillmentWebhookView
 import jwt, json
 
 from .models import User, EditorFile
@@ -517,6 +517,9 @@ class GenerateTextTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class UserCreditsTestCase(APITestCase):
+    """
+    Test all aspects of UserCreditsView that do not depend on Stripe.
+    """
     def setUp(self):
         # Create a user for testing
         self.client = APIClient()
@@ -545,28 +548,37 @@ class UserCreditsTestCase(APITestCase):
     def test_post_credits_authenticated(self):
         self.login()
 
-        payment = 10
+        response = self.client.post(reverse('credits'), {}, content_type='application/json')
 
-        response = self.client.post(reverse('credits'), json.dumps({'credits': payment}), content_type='application/json')
+        # Stripe webhook should return URL for payment input.
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.user.refresh_from_db()
-
-        self.assertEqual(payment, response.data['credits'], self.user.credits)
+        print(response.data)
 
     def test_post_credits_unauthenticated(self):
-        response = self.client.post(reverse('credits'), {'credits': 10})
+        response = self.client.post(reverse('credits'), {})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_post_invalid_payment_amount(self):
-        self.login()
 
-        response = self.client.post(reverse('credits'), {})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+class OrderFulfillmentAPITestCase(APITestCase):
 
-        response = self.client.post(reverse('credits'), {'credits': -10.4})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def setUp(self):
+        self.client = APIClient()
+        self.username = 'test_user'
+        self.user = User.objects.create_user(username=self.username, password='test_password')
 
-        response = self.client.post(reverse('credits'), {'credits': 'abc'})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_fulfill_order(self):
+
+        # Mock of the Stripe checkout_session data, with the fields we require.
+        session = {
+            "metadata": {"username": "test_user"},
+            "line_items": {"data": [{"amount_total": 10}]}
+        }
+
+        # Send data to fulfill_order, bypassing Stripe webhook function.
+        view = OrderFulfillmentWebhookView()
+        view.fulfill_order(session)
+
+        # Check if the user's credits have been updated.
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.credits, 10)

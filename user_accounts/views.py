@@ -507,7 +507,13 @@ class GenerateTextView(APIView):
 
         return Response(response, status=status.HTTP_200_OK)
     
+stripe.api_key = os.getenv("STRIPE_API_KEY")
+
 class UserCreditsView(APIView):
+
+    def __init__(self):
+        # Key on our Stripe account for user to add their chosen amount of LLM credits.
+        self.credit_price_id = 'price_1P5OogEkDHz9IHMxM3lo20bv'
     
     """
     Handle payment details.
@@ -531,17 +537,24 @@ class UserCreditsView(APIView):
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=401)
     
-        payment_amount = request.data.get('credits')
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[
+                    {
+                        'price': self.credit_price_id,
+                        'quantity': 1,
+                    },
+                ],
+                mode='payment',
+                success_url="https://" + site_domain + '/?success=true',
+                cancel_url="https://" + site_domain + '/?canceled=true',
+                metadata={"username": user.username},
+            )
+            return Response({'redirect_url': checkout_session.url}, status=302)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
 
-        if not isinstance(payment_amount, (int, float)) or isinstance(payment_amount, bool) or payment_amount is None or payment_amount <= 0:
-
-            return Response({"detail": "Payment amount must be a positive number."}, status=status.HTTP_400_BAD_REQUEST)
-
-        user.credits += payment_amount
-        user.save()
-        return Response({"credits": user.credits, "detail": "The credits you purchased have been added to your account."}, status=status.HTTP_200_OK)
-
-stripe.api_key = os.getenv("STRIPE_API_KEY")
 
 class CreateCheckoutSessionView(APIView):
     def __init__(self):
@@ -563,20 +576,34 @@ class CreateCheckoutSessionView(APIView):
                 mode='payment',
                 success_url="https://" + site_domain + '/?success=true',
                 cancel_url="https://" + site_domain + '/?canceled=true',
-                metadata={"user": username},
+                metadata={"username": username},
             )
             return Response({'redirect_url': checkout_session.url}, status=302)
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
-class MyWebhookView(APIView):
+class OrderFulfillmentWebhookView(APIView):
+
+    def fulfill_order(self, session):
+        
+        username = session["metadata"]["username"]
+        user = User.objects.get(username=username)
+                    
+        # Can only place one order at a time, so get the single order.
+        purchase = session["line_items"]["data"][0]
+
+        credits = purchase["amount_total"]
+
+        user.credits += credits
+        user.save()
+
     @csrf_exempt
     def post(self, request, *args, **kwargs):
         payload = request.body
         sig_header = request.META['HTTP_STRIPE_SIGNATURE']
         event = None
 
-        endpoint_secret='whsec_0afca699df9d7ee4e19c524b54f43fd9f717258524e23ee0e89c297841ab8419'
+        endpoint_secret='whsec_0afca699df9d7ee4e19c524b54f43fd9f717258524e23ee0e89c297841ab8419'# os.getenv("STRIPE_WEBHOOK_SECRET")
 
         try:
             event = stripe.Webhook.construct_event(
@@ -590,30 +617,15 @@ class MyWebhookView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
         if event['type'] == 'checkout.session.completed':
-            # Retrieve the session. If you require line items in the response, you may include them by expanding line_items.
+            # Retrieve the session.
             session = stripe.checkout.Session.retrieve(
                 event['data']['object']['id'],
                 expand=['line_items'],
             )
 
-            # Fulfill the purchase...
-            fulfill_order(session)
+            # Fulfill the purchase.
+            self.fulfill_order(session)
 
         # Passed signature verification
         return Response(status=status.HTTP_200_OK)
 
-def fulfill_order(session):
-  
-  username = session["metadata"]["user"]
-    
-  line_items = session.line_items
- 
-  # Can only place one order at a time. Get order.
-  purchase = line_items["data"][0]
-
-  credits = purchase["amount_total"]
-
-  user = User.objects.get(username=username)
-
-  user.credits += credits
-  user.save()

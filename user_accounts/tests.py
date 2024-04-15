@@ -553,8 +553,6 @@ class UserCreditsTestCase(APITestCase):
         # Stripe webhook should return URL for payment input.
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
-        print(response.data)
-
     def test_post_credits_unauthenticated(self):
         response = self.client.post(reverse('credits'), {})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

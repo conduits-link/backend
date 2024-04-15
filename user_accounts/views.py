@@ -555,33 +555,6 @@ class UserCreditsView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
-
-class CreateCheckoutSessionView(APIView):
-    def __init__(self):
-        # Key on our Stripe account for user to add their chosen amount of LLM credits.
-        self.credit_price_id = 'price_1P5OogEkDHz9IHMxM3lo20bv'
-
-    def post(self, request):
-        # TODO: set this with JWT auth
-        username = "username"
-        try:
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[
-                    {
-                        'price': self.credit_price_id,
-                        'quantity': 1,
-                    },
-                ],
-                mode='payment',
-                success_url="https://" + site_domain + '/?success=true',
-                cancel_url="https://" + site_domain + '/?canceled=true',
-                metadata={"username": username},
-            )
-            return Response({'redirect_url': checkout_session.url}, status=302)
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
-
 class OrderFulfillmentWebhookView(APIView):
 
     def fulfill_order(self, session):

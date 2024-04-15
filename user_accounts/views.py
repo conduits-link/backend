@@ -576,7 +576,7 @@ class OrderFulfillmentWebhookView(APIView):
         sig_header = request.META['HTTP_STRIPE_SIGNATURE']
         event = None
 
-        endpoint_secret='whsec_0afca699df9d7ee4e19c524b54f43fd9f717258524e23ee0e89c297841ab8419'# os.getenv("STRIPE_WEBHOOK_SECRET")
+        endpoint_secret=os.getenv("STRIPE_WEBHOOK_SECRET")
 
         try:
             event = stripe.Webhook.construct_event(

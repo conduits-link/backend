@@ -38,7 +38,7 @@ class User(AbstractUser):
     """Class to store user information in our database."""
 
     # Store LLM API credits.
-    credits = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    credits = models.IntegerField(default=0, validators=[MinValueValidator(0)])
 
     def __str__(self):
         return self.username

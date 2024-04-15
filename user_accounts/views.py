@@ -130,6 +130,8 @@ def get_user_from_jwt(request):
     or None otherwise.
     """
     username = decode_jwt_token(request)
+
+    # Get user, or return None if it doesn't exist.
     return User.objects.filter(username=username).first()
 
     
@@ -506,6 +508,7 @@ class GenerateTextView(APIView):
         return Response(response, status=status.HTTP_200_OK)
     
 class UserCreditsView(APIView):
+    
     """
     Handle payment details.
     """
@@ -546,6 +549,8 @@ class CreateCheckoutSessionView(APIView):
         self.credit_price_id = 'price_1P5OogEkDHz9IHMxM3lo20bv'
 
     def post(self, request):
+        # TODO: set this with JWT auth
+        username = "username"
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -558,45 +563,57 @@ class CreateCheckoutSessionView(APIView):
                 mode='payment',
                 success_url="https://" + site_domain + '/?success=true',
                 cancel_url="https://" + site_domain + '/?canceled=true',
+                metadata={"user": username},
             )
             return Response({'redirect_url': checkout_session.url}, status=302)
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
-@csrf_exempt
-def my_webhook_view(request):
-  payload = request.body
-  sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-  event = None
+class MyWebhookView(APIView):
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
+        payload = request.body
+        sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+        event = None
 
-  endpoint_secret='whsec_0afca699df9d7ee4e19c524b54f43fd9f717258524e23ee0e89c297841ab8419'
+        endpoint_secret='whsec_0afca699df9d7ee4e19c524b54f43fd9f717258524e23ee0e89c297841ab8419'
 
-  try:
-    event = stripe.Webhook.construct_event(
-      payload, sig_header, endpoint_secret
-    )
-  except ValueError as e:
-    # Invalid payload
-    return Response(status=400)
-  except stripe.error.SignatureVerificationError as e:
-    # Invalid signature
-    return Response(status=400)
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, endpoint_secret
+            )
+        except ValueError as e:
+            # Invalid payload
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        except stripe.error.SignatureVerificationError as e:
+            # Invalid signature
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        if event['type'] == 'checkout.session.completed':
+            # Retrieve the session. If you require line items in the response, you may include them by expanding line_items.
+            session = stripe.checkout.Session.retrieve(
+                event['data']['object']['id'],
+                expand=['line_items'],
+            )
+
+            # Fulfill the purchase...
+            fulfill_order(session)
+
+        # Passed signature verification
+        return Response(status=status.HTTP_200_OK)
+
+def fulfill_order(session):
   
-  if event['type'] == 'checkout.session.completed':
-    # Retrieve the session. If you require line items in the response, you may include them by expanding line_items.
-    session = stripe.checkout.Session.retrieve(
-        event['data']['object']['id'],
-        expand
-        =['line_items'],
-    )
+  username = session["metadata"]["user"]
+    
+  line_items = session.line_items
+ 
+  # Can only place one order at a time. Get order.
+  purchase = line_items["data"][0]
 
-    line_items = session.line_items
-    # Fulfill the purchase...
-    fulfill_order(line_items)
+  credits = purchase["amount_total"]
 
-  # Passed signature verification
-  return Response(status=200)
+  user = User.objects.get(username=username)
 
-def fulfill_order(line_items):
-  # TODO: fill me in
-  print("Fulfilling order")
+  user.credits += credits
+  user.save()

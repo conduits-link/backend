@@ -537,7 +537,7 @@ class UserCreditsView(APIView):
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=401)
         
-        success_bool_URL = "https://app." + site_domain + '/settings/credits?success='
+        final_url = "https://app." + site_domain + '/settings/credits?session_id={CHECKOUT_SESSION_ID}'
     
         try:
             checkout_session = stripe.checkout.Session.create(
@@ -549,8 +549,8 @@ class UserCreditsView(APIView):
                     },
                 ],
                 mode='payment',
-                success_url=success_bool_URL + 'true',
-                cancel_url=success_bool_URL + 'false',
+                success_url=final_url,
+                cancel_url=final_url,
                 metadata={"username": user.username},
             )
             return Response({'redirect_url': checkout_session.url}, status=302)
@@ -604,8 +604,8 @@ class OrderFulfillmentWebhookView(APIView):
             )
 
             # Fulfill the purchase.
-            credits = self.fulfill_order(session)
+            self.fulfill_order(session)
 
         # Passed signature verification
-        return Response({"added_credits": credits}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 

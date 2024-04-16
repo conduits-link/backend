@@ -560,6 +560,10 @@ class UserCreditsView(APIView):
 class OrderFulfillmentWebhookView(APIView):
 
     def fulfill_order(self, session):
+        """
+        Add the credits from the Stripe payment to the 
+        user's account. Return the number of credits added.
+        """
         
         username = session["metadata"]["username"]
         user = User.objects.get(username=username)
@@ -571,6 +575,7 @@ class OrderFulfillmentWebhookView(APIView):
 
         user.credits += credits
         user.save()
+        return credits
 
     @csrf_exempt
     def post(self, request, *args, **kwargs):
@@ -599,8 +604,8 @@ class OrderFulfillmentWebhookView(APIView):
             )
 
             # Fulfill the purchase.
-            self.fulfill_order(session)
+            credits = self.fulfill_order(session)
 
         # Passed signature verification
-        return Response(status=status.HTTP_200_OK)
+        return Response({"added_credits": credits}, status=status.HTTP_200_OK)
 

@@ -536,6 +536,8 @@ class UserCreditsView(APIView):
         if user is None:
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=401)
+        
+        success_bool_URL = "https://app." + site_domain + '/settings/credits?success='
     
         try:
             checkout_session = stripe.checkout.Session.create(
@@ -547,8 +549,8 @@ class UserCreditsView(APIView):
                     },
                 ],
                 mode='payment',
-                success_url="https://" + site_domain + '/?success=true',
-                cancel_url="https://" + site_domain + '/?canceled=true',
+                success_url=success_bool_URL + 'true',
+                cancel_url=success_bool_URL + 'false',
                 metadata={"username": user.username},
             )
             return Response({'redirect_url': checkout_session.url}, status=302)

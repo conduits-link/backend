@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegistrationEmailView, UserRegistrationView, UserLoginView, UserLogoutView, UserForgotView, UserResetPasswordView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, GenerateTextView, UserCreditsView, OrderFulfillmentWebhookView
+from .views import RegistrationEmailView, UserRegistrationView, UserLoginView, UserLogoutView, UserForgotView, UserResetPasswordView, DocsCreateRetrieveView, DocRetrieveUpdateDestroyView, GenerateTextView, UserCreditsView, OrderFulfillmentWebhookView, CreditsSessionIDView
 
 # Endpoints given in 
 # https://github.com/dan-smith-tech/conduit/blob/main/docs/api.md
@@ -34,5 +34,6 @@ urlpatterns = [
 
     path('credits', UserCreditsView.as_view(), name='credits'), 
     path('stripe-webhook', OrderFulfillmentWebhookView.as_view(), name='stripe-webhook'),
+    path('credits/<str:pk>', CreditsSessionIDView.as_view(), name='credits-sessionid'), 
 
 ]

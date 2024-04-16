@@ -609,3 +609,26 @@ class OrderFulfillmentWebhookView(APIView):
         # Passed signature verification
         return Response(status=status.HTTP_200_OK)
 
+
+class CreditsSessionIDView(APIView):
+    def get(self, request, pk):
+
+        user = get_user_from_jwt(request)
+
+        session = stripe.checkout.Session.retrieve(pk)
+
+        username = session["metadata"]["username"]
+
+        if user is None or user.username != username:
+            # Token authentication failed - either no JWT or user
+            # trying to retrieve someone else's Session.
+            return Response({"error": "Unauthorized"}, status=401)
+        
+        if session["status"] == "complete":
+            # Can only place one order at a time, so get the single order.
+            purchase = session["line_items"]["data"][0]
+            credits = purchase["amount_total"]
+
+            return Response({"status": "Payment successful.", "added_credits": credits}, status=200)
+        
+        return Response({"status": "Payment unsuccessful."}, status=402)

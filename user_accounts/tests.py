@@ -13,6 +13,7 @@ from .models import User, EditorFile
 import os , unittest.mock
 from openai import AuthenticationError 
 
+
 def validate_jwt(self, response, username):
 
     jwt_key = "TODO_CHANGEME_KEY"
@@ -558,7 +559,7 @@ class UserCreditsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class OrderFulfillmentAPITestCase(APITestCase):
+class OrderFulfillmentTestCase(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
@@ -580,3 +581,54 @@ class OrderFulfillmentAPITestCase(APITestCase):
         # Check if the user's credits have been updated.
         self.user.refresh_from_db()
         self.assertEqual(self.user.credits, 10)
+
+class CreditsSessionIDViewTest(APITestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.username = 'test_user'
+        self.user = User.objects.create_user(username=self.username, password='test_password')
+        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
+        self.pk = "dummy_pk"
+
+        self.session_data = {
+            "id": self.pk,
+            "metadata": {"username": self.username},
+            "status": "complete",
+            "line_items": {"data": [{"amount_total": 100}]}
+        }
+
+    @unittest.mock.patch("stripe.checkout.Session.retrieve")
+    def test_successful_payment(self, mock_session_retrieve):
+        mock_session_retrieve.return_value = self.session_data
+
+        url = reverse("credits-sessionid", args=[self.pk])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["status"], "Payment successful.")
+        self.assertEqual(response.data["added_credits"], 100)
+
+    @unittest.mock.patch("stripe.checkout.Session.retrieve")
+    def test_unsuccessful_payment(self, mock_session_retrieve):
+        session_data = self.session_data.copy()
+        session_data["status"] = "incomplete"
+        mock_session_retrieve.return_value = session_data
+
+        url = reverse("credits-sessionid", args=[self.pk])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+        self.assertEqual(response.data["status"], "Payment unsuccessful.")
+
+    @unittest.mock.patch("stripe.checkout.Session.retrieve")
+    def test_unauthorized_user(self, mock_session_retrieve):
+        self.client.cookies = SimpleCookie({})
+
+        mock_session_retrieve.return_value = self.session_data
+
+        url = reverse("credits-sessionid", args=[self.pk])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data["error"], "Unauthorized")

@@ -589,7 +589,7 @@ class CreditsSessionIDViewTest(APITestCase):
         self.username = 'test_user'
         self.user = User.objects.create_user(username=self.username, password='test_password')
         self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
-        self.pk = "dummy_pk"
+        self.pk = "test_pk"
 
         self.session_data = {
             "id": self.pk,
@@ -611,9 +611,8 @@ class CreditsSessionIDViewTest(APITestCase):
 
     @unittest.mock.patch("stripe.checkout.Session.retrieve")
     def test_unsuccessful_payment(self, mock_session_retrieve):
-        session_data = self.session_data.copy()
-        session_data["status"] = "incomplete"
-        mock_session_retrieve.return_value = session_data
+        self.session_data["status"] = "incomplete"
+        mock_session_retrieve.return_value = self.session_data
 
         url = reverse("credits-sessionid", args=[self.pk])
         response = self.client.get(url)
@@ -632,3 +631,11 @@ class CreditsSessionIDViewTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data["error"], "Unauthorized")
+
+
+    def test_invalid_session_id(self):
+
+        url = reverse("credits-sessionid", args=["invalid_pk"])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

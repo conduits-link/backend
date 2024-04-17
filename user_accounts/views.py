@@ -615,12 +615,25 @@ class CreditsSessionIDView(APIView):
 
         user = get_user_from_jwt(request)
 
-        session = stripe.checkout.Session.retrieve(pk)
+        if user is None:
+            # Token authentication failed - either invalid JWT.
+            return Response({"error": "Unauthorized"}, status=401)
 
+        try:
+            session = stripe.checkout.Session.retrieve(pk)
+        except stripe.InvalidRequestError:
+            # Must have given an invalid session ID pk.
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
         username = session["metadata"]["username"]
 
-        if user is None or user.username != username:
-            # Token authentication failed - either no JWT or user
+        if user.username != username:
+            # Token authentication failed - user
+            # trying to retrieve someone else's Session
+            return Response({"error": "Unauthorized"}, status=401)
+
+        if user.username != username:
+            # Token authentication failed - user
             # trying to retrieve someone else's Session.
             return Response({"error": "Unauthorized"}, status=401)
         
@@ -632,3 +645,6 @@ class CreditsSessionIDView(APIView):
             return Response({"status": "Payment successful.", "added_credits": credits}, status=200)
         
         return Response({"status": "Payment unsuccessful."}, status=402)
+    
+
+

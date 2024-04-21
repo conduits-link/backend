@@ -595,7 +595,7 @@ class CreditsSessionIDViewTest(APITestCase):
             "id": self.pk,
             "metadata": {"username": self.username},
             "status": "complete",
-            "line_items": {"data": [{"amount_total": 100}]}
+            "amount_total": 100
         }
 
     @unittest.mock.patch("stripe.checkout.Session.retrieve")

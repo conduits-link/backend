@@ -638,9 +638,7 @@ class CreditsSessionIDView(APIView):
             return Response({"error": "Unauthorized"}, status=401)
         
         if session["status"] == "complete":
-            # Can only place one order at a time, so get the single order.
-            purchase = session["line_items"]["data"][0]
-            credits = purchase["amount_total"]
+            credits = session["amount_total"]
 
             return Response({"status": "Payment successful.", "added_credits": credits}, status=200)
         

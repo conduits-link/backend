@@ -541,6 +541,7 @@ class UserCreditsView(APIView):
     
         try:
             checkout_session = stripe.checkout.Session.create(
+                customer_email=user.email,
                 payment_method_types=['card'],
                 line_items=[
                     {

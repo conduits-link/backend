@@ -527,7 +527,7 @@ class UserCreditsTestCase(APITestCase):
 
         self.username ='test_user'
 
-        self.user = User.objects.create_user(username=self.username, password='test_password')
+        self.user = User.objects.create_user(username=self.username, password='test_password', email='test@example.com')
 
     def login(self):
         self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})

@@ -537,7 +537,7 @@ class UserCreditsView(APIView):
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=401)
         
-        final_url = "https://app." + site_domain + '/settings/credits?session_id={CHECKOUT_SESSION_ID}'
+        final_url = "https://app." + site_domain + '/credits?session_id={CHECKOUT_SESSION_ID}'
     
         try:
             checkout_session = stripe.checkout.Session.create(

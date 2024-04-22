@@ -485,12 +485,13 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
 class GenerateTextTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
+        self.username = 'test_user'
+        self.user = User.objects.create_user(username=self.username, password='test_password')
 
-    # Use invalid OpenAI API key to avoid spending money during tests.
-    @unittest.mock.patch.dict(os.environ, {"OPENAI_API_KEY": "invalid_key"})
-    def test_generate_text_success(self):
-        # Define the request data
-        request_data = {
+        # Include the token in the client's request headers
+        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
+
+        self.request_data = {
             "prompt": {
                 "name": "Test Prompt",
                 "messages": [
@@ -502,20 +503,35 @@ class GenerateTextTest(APITestCase):
             }
         }
 
+    # Use invalid OpenAI API key to avoid spending money during tests.
+    @unittest.mock.patch.dict(os.environ, {"OPENAI_API_KEY": "invalid_key"})
+    def test_generate_text_success(self):
+
         try: # Send a POST request to the generate_text endpoint
-            response = self.client.post(reverse('generate-text'), request_data, format='json')
+            response = self.client.post(reverse('generate-text'), self.request_data, format='json')
         except AuthenticationError as e:
             response = e
 
         # Check if the response is unauthorized due to invalid key
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.code, "invalid_api_key")
 
     def test_generate_text_invalid_json(self):
         # Send a POST request with invalid JSON format
         response = self.client.post(reverse('generate-text'), "invalid_json", content_type='application/json')
 
-        # Check if the response indicates invalid JSON format (HTTP 400 Bad Request)
+        # Check if the response indicates invalid JSON format
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_generate_text_not_logged_in(self):
+        # Log out.
+        self.client.cookies = SimpleCookie({})
+
+        # Send a POST request with invalid JSON format
+        response = self.client.post(reverse('generate-text'), self.request_data, content_type='application/json')
+
+        # Check if the response indicates invalid JSON format
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class UserCreditsTestCase(APITestCase):
     """

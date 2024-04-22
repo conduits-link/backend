@@ -468,6 +468,13 @@ class GenerateTextView(APIView):
     requests a generative model to generate text, given a prompt.
     """
     def post(self, request):
+
+        user = decode_jwt_token(request)
+        
+        if user is None:
+            # Token authentication failed
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
         # Extract data from the request
         data = request.data
         prompt_name = data.get('prompt', {}).get('name', '')

@@ -38,8 +38,9 @@ class User(AbstractUser):
     """Class to store user information in our database."""
 
     # Store LLM API credits.
+    # Decimal field to we can subtract fractions of a credit for small prompts.
     # Negative credits are permitted to allow for Tiktoken price estimation errors.
-    credits = models.IntegerField(default=0)
+    credits = models.DecimalField(max_digits=10, decimal_places=5, default=0)
 
     def __str__(self):
         return self.username

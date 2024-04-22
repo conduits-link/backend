@@ -569,7 +569,7 @@ class GenerateTextTest(APITestCase):
 
     # TODO: add tests for different credits scenarios.
 
-class UserCreditsTestCase(APITestCase):
+class UserCreditsViewTest(APITestCase):
     """
     Test all aspects of UserCreditsView that do not depend on Stripe.
     """
@@ -611,7 +611,7 @@ class UserCreditsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class OrderFulfillmentTestCase(APITestCase):
+class OrderFulfillmentViewTest(APITestCase):
 
     def setUp(self):
         self.client = APIClient()

@@ -632,7 +632,7 @@ class UserCreditsView(APIView):
 
     def __init__(self):
         # Key on our Stripe account for user to add their chosen amount of LLM credits.
-        self.credit_price_id = 'price_1P5OogEkDHz9IHMxM3lo20bv'
+        self.credit_price_id = 'price_1P8LwbEkDHz9IHMxbbxXhYcR'
     
     """
     Handle payment details.
@@ -661,8 +661,7 @@ class UserCreditsView(APIView):
         try:
             checkout_session = stripe.checkout.Session.create(
                 customer_email=user.email,
-                # TODO: resolve GBP / USD payment issues
-                currency='gbp',
+                currency='usd',
                 payment_method_types=['card'],
                 line_items=[
                     {

@@ -33,6 +33,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import stripe
 
+from math import ceil
+
 import logging
 # To use:
 # logger = logging.getLogger('defaultlogger')
@@ -463,6 +465,39 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 # Performs LLM inference on text provided.
 class GenerateTextView(APIView):
+    def __init__(self):
+        """
+        ChatGPT 3.5 Turbo pricing details
+        """
+        # This number of tokens are permitted
+        # in the combined prompt and response.
+        self.total_tokens = 4096
+
+        # Cents per million tokens.
+        self.input_pricing = 50
+        self.output_pricing = 150 
+
+        # Convenience variable for a million.
+        self.million = 1000000
+
+    def estimate_tokens(self):
+        pass
+
+    def max_cost(self, prompt):
+        """
+        Given a prompt, estimate the maximum cost of the LLM call.
+        """
+
+        # Estimate the cost of the prompt using Tiktoken.
+        prompt_tokens = self.estimate_tokens(prompt)
+        prompt_cost = prompt_tokens * self.input_pricing
+
+        # Estimate the cost of the response, assuming it will be of maximum length.
+        max_response_tokens = self.total_tokens - prompt_tokens
+        max_response_cost = ceil(self.output_pricing * max_response_tokens / self.million)
+
+        return prompt_cost + max_response_cost
+        
     """
     Handles endpoint for /generate/text : POST
     requests a generative model to generate text, given a prompt.
@@ -480,8 +515,15 @@ class GenerateTextView(APIView):
         prompt_name = data.get('prompt', {}).get('name', '')
         messages = data.get('prompt', {}).get('messages', [])
 
+
+        # Validate input
         if not messages:
             return Response({"error": "Messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if "role" not in messages[0] or "content" not in messages[0]:
+            return Response({"error": "Messages in wrong format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # if self.max_cost()
 
         client = OpenAI()
 
@@ -549,6 +591,7 @@ class UserCreditsView(APIView):
         try:
             checkout_session = stripe.checkout.Session.create(
                 customer_email=user.email,
+                currency='usd',
                 payment_method_types=['card'],
                 line_items=[
                     {

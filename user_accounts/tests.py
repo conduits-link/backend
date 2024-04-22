@@ -523,6 +523,40 @@ class GenerateTextTest(APITestCase):
         # Check if the response indicates invalid JSON format
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+        # Send a POST request with invalid JSON format - no "role" entry.
+        response = self.client.post(reverse('generate-text'), 
+            {"prompt": 
+                {
+                    "name": "Test Prompt",
+                    "messages": [
+                        {
+                            "content": "Please add more detail to the following text. Do not add information for the sake of it, simply add more relevant information that will enhance the value of the information. The text input is the following: 'The sky is blue.'"
+                        }
+                    ]
+                }
+            }, content_type='application/json'
+        )
+
+        # Check if the response indicates invalid JSON format
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Send a POST request with invalid JSON format - no "content" entry.
+        response = self.client.post(reverse('generate-text'), 
+            {"prompt": 
+                {
+                    "name": "Test Prompt",
+                    "messages": [
+                        {
+                            "role": "user"
+                        }
+                    ]
+                }
+            }, content_type='application/json'
+        )
+
+        # Check if the response indicates invalid JSON format
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_generate_text_not_logged_in(self):
         # Log out.
         self.client.cookies = SimpleCookie({})

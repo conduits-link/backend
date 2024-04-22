@@ -531,8 +531,10 @@ class GenerateTextView(APIView):
 
     def cost(self, usage):
         """
-        Given the usage field of the Completions response JSON, 
-        calculates the cost of the API call. Format:
+        Given the usage field of the ChatGPT Completions
+        response JSON, calculates the cost of the API call. 
+        
+        Format:
 
         "usage": {
             "completion_tokens": 17,

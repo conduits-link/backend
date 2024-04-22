@@ -9,4 +9,5 @@ python-dotenv
 dj_database_url
 pyjwt
 openai
+tiktoken
 stripe

@@ -23,7 +23,6 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import jwt
 from jwt.exceptions import DecodeError
-
 import datetime
 
 import os
@@ -31,6 +30,7 @@ import requests
 from dotenv import load_dotenv
 
 from openai import OpenAI
+import tiktoken
 import stripe
 
 from math import floor, ceil
@@ -480,17 +480,27 @@ class GenerateTextView(APIView):
         # Convenience variable for a million.
         self.million = 1000000
 
+        # Download Tiktoken encoding from web.
+        self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+
     def estimate_tokens(self, prompt):
         """
-        TODO: use Tiktoken to estimate tokens.
+        Use Tiktoken to estimate tokens.
         """
-        return 0
+
+        # Calculation given at URL below. + 7 is for 
+        # boilerplate added to every prompt by ChatGPT API.
+        #
+        # https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken
+        # 
+        return len(self.encoding.encode(prompt)) + 7
 
     def prompt_cost(self, prompt):
         """
          Estimate the cost of the prompt using Tiktoken.
         """
-        return self.estimate_tokens(prompt) * self.input_pricing
+        # Pricing is given in cents per million tokens.
+        return self.estimate_tokens(prompt) * self.input_pricing / self.million
 
     def max_cost(self, prompt):
         """
@@ -499,10 +509,12 @@ class GenerateTextView(APIView):
 
         # Estimate the cost of the prompt using Tiktoken.
         prompt_tokens = self.estimate_tokens(prompt)
-        prompt_cost = prompt_tokens * self.input_pricing
+        prompt_cost = self.prompt_cost(prompt)
 
         # Estimate the cost of the response, assuming it will be of maximum length.
         max_response_tokens = self.total_tokens - prompt_tokens
+
+        # Pricing is given in cents per million tokens.
         max_response_cost = ceil(self.output_pricing * max_response_tokens / self.million)
 
         return prompt_cost + max_response_cost
@@ -556,7 +568,6 @@ class GenerateTextView(APIView):
         prompt = messages[0].get('content', '')
         is_scaling_output = True if 'scale' in data else False
 
-
         # Validate input.
         if not messages:
             return Response({"error": "Messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
@@ -565,6 +576,7 @@ class GenerateTextView(APIView):
             return Response({"error": "Messages in wrong format."}, status=status.HTTP_400_BAD_REQUEST)
 
         if self.prompt_cost(prompt) > user.credits:
+            print(self.prompt_cost(prompt))
             return Response({"error": "The cost of your prompt exceeds your remaining credits."}, status=status.HTTP_402_PAYMENT_REQUIRED)
 
         # If the maximum cost of the LLM is too high, and the user has 

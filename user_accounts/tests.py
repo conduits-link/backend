@@ -486,7 +486,7 @@ class GenerateTextTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.username = 'test_user'
-        self.user = User.objects.create_user(username=self.username, password='test_password')
+        self.user = User.objects.create_user(username=self.username, password='test_password', credits=100)
 
         # Include the token in the client's request headers
         self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
@@ -566,6 +566,8 @@ class GenerateTextTest(APITestCase):
 
         # Check if the response indicates invalid JSON format
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # TODO: add tests for different credits scenarios.
 
 class UserCreditsTestCase(APITestCase):
     """

@@ -33,7 +33,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import stripe
 
-from math import ceil
+from math import floor, ceil
 
 import logging
 # To use:
@@ -111,7 +111,7 @@ def decode_jwt_token(request):
         request: The request object.
 
     Returns:
-        User object if the token is valid, None otherwise.
+        Username if the token is valid, None otherwise.
     """
 
     token = request.COOKIES.get('jwt')
@@ -480,8 +480,17 @@ class GenerateTextView(APIView):
         # Convenience variable for a million.
         self.million = 1000000
 
-    def estimate_tokens(self):
-        pass
+    def estimate_tokens(self, prompt):
+        """
+        TODO: use Tiktoken to estimate tokens.
+        """
+        return 0
+
+    def prompt_cost(self, prompt):
+        """
+         Estimate the cost of the prompt using Tiktoken.
+        """
+        return self.estimate_tokens(prompt) * self.input_pricing
 
     def max_cost(self, prompt):
         """
@@ -497,33 +506,77 @@ class GenerateTextView(APIView):
         max_response_cost = ceil(self.output_pricing * max_response_tokens / self.million)
 
         return prompt_cost + max_response_cost
-        
-    """
-    Handles endpoint for /generate/text : POST
-    requests a generative model to generate text, given a prompt.
-    """
-    def post(self, request):
 
-        user = decode_jwt_token(request)
+    def max_response_length(self, prompt, credits):
+        """
+        Given a prompt and the user's remaining credits, calculate
+        the maximum length the response can be, in tokens.
+        """      
+
+        remaining_credits = credits - self.prompt_cost(prompt)
+
+        return floor(remaining_credits * (self.million / self.output_pricing))
+
+    def cost(self, usage):
+        """
+        Given the usage field of the Completions response JSON, 
+        calculates the cost of the API call. Format:
+
+        "usage": {
+            "completion_tokens": 17,
+            "prompt_tokens": 57,
+            "total_tokens": 74
+        }
+        """
+
+        prompt_cost = usage.prompt_tokens * self.input_pricing
+        completion_cost = usage.completion_tokens * self.output_pricing
+
+        return prompt_cost + completion_cost
+
+    def post(self, request):
+        """
+        Handles endpoint for /generate/text : POST
+        requests a generative model to generate text, given a prompt.
+        """
+
+        user = get_user_from_jwt(request)
         
         if user is None:
             # Token authentication failed
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         
+        if user.credits <= 0:
+            return Response({"error": "You have no remaining credits. Please add some to your account."}, status=status.HTTP_402_PAYMENT_REQUIRED)
+        
         # Extract data from the request
         data = request.data
         prompt_name = data.get('prompt', {}).get('name', '')
         messages = data.get('prompt', {}).get('messages', [])
+        prompt = messages[0].get('content', '')
+        is_scaling_output = True if 'scale' in data else False
 
 
-        # Validate input
+        # Validate input.
         if not messages:
             return Response({"error": "Messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
 
         if "role" not in messages[0] or "content" not in messages[0]:
             return Response({"error": "Messages in wrong format."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # if self.max_cost()
+        if self.prompt_cost(prompt) > user.credits:
+            return Response({"error": "The cost of your prompt exceeds your remaining credits."}, status=status.HTTP_402_PAYMENT_REQUIRED)
+
+        # If the maximum cost of the LLM is too high, and the user has 
+        # not opted to scale down the response output, end the payment.
+        if self.max_cost(prompt) > user.credits and not is_scaling_output:
+            return Response({"error": "Insufficient credits for the response. Please add credits or select 'Scale Down Output'."}, status=status.HTTP_402_PAYMENT_REQUIRED)
+
+        # If scaling down output is selected and necessary, do so.
+        if self.max_cost(prompt) > user.credits and is_scaling_output:
+            max_tokens = self.max_response_length(prompt, user.credits)
+        else:
+            max_tokens = self.total_tokens
 
         client = OpenAI()
 
@@ -534,7 +587,7 @@ class GenerateTextView(APIView):
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
-            max_tokens=200,
+            max_tokens=max_tokens,
             stream=False, # should use instead of loading icon
             n=1
         )
@@ -553,6 +606,11 @@ class GenerateTextView(APIView):
                 ]
             }
         }
+
+        # Subtract cost of LLM call from user's credits.
+        cost = self.cost(completion.usage)
+        user.credits -= cost
+        user.save()
 
         return Response(response, status=status.HTTP_200_OK)
     
@@ -591,7 +649,8 @@ class UserCreditsView(APIView):
         try:
             checkout_session = stripe.checkout.Session.create(
                 customer_email=user.email,
-                currency='usd',
+                # TODO: resolve GBP / USD payment issues
+                currency='gbp',
                 payment_method_types=['card'],
                 line_items=[
                     {
@@ -606,6 +665,7 @@ class UserCreditsView(APIView):
             )
             return Response({'redirect_url': checkout_session.url}, status=302)
         except Exception as e:
+            print(e)
             return Response({'error': str(e)}, status=500)
 
 class OrderFulfillmentWebhookView(APIView):

@@ -38,7 +38,8 @@ class User(AbstractUser):
     """Class to store user information in our database."""
 
     # Store LLM API credits.
-    credits = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    # Negative credits are permitted to allow for Tiktoken price estimation errors.
+    credits = models.IntegerField(default=0)
 
     def __str__(self):
         return self.username

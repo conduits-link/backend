@@ -540,11 +540,12 @@ class GenerateTextView(APIView):
             "total_tokens": 74
         }
         """
-
+        
         prompt_cost = usage.prompt_tokens * self.input_pricing
         completion_cost = usage.completion_tokens * self.output_pricing
 
-        return prompt_cost + completion_cost
+        # Pricing is per million tokens.
+        return (prompt_cost + completion_cost) / self.million
 
     def post(self, request):
         """
@@ -606,6 +607,11 @@ class GenerateTextView(APIView):
 
         answer = completion.choices[0].message.content
 
+        # Subtract cost of LLM call from user's credits.
+        cost = self.cost(completion.usage)
+        user.credits -= cost
+        user.save()
+
         response = {
             "detail": "Text generated successfully",
             "prompt": {
@@ -616,13 +622,9 @@ class GenerateTextView(APIView):
                         "content": answer
                     }
                 ]
-            }
+            },
+            "cost": cost
         }
-
-        # Subtract cost of LLM call from user's credits.
-        cost = self.cost(completion.usage)
-        user.credits -= cost
-        user.save()
 
         return Response(response, status=status.HTTP_200_OK)
     

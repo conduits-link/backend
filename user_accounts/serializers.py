@@ -1,4 +1,4 @@
-from .models import EditorFile
+from .models import EditorFile, Prompt
 from rest_framework import serializers
 
 class UserAuthSerializer(serializers.Serializer):
@@ -25,6 +25,7 @@ class FileListSerializer(serializers.ModelSerializer):
         model = EditorFile
         fields = ('uid', 'title', 'body', 'created', 'modified') 
 
-class PromptSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    prompt = serializers.CharField()
+class PromptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prompt
+        fields = ['id', 'name', 'prompt']

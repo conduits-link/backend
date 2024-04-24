@@ -41,8 +41,14 @@ class User(AbstractUser):
     # Float field to we can subtract fractions of a credit for small prompts.
     # Negative credits are permitted to allow for Tiktoken price estimation errors.
     credits = models.FloatField(default=0.0)
-
-    prompts = models.JSONField(default=list)
     
     def __str__(self):
         return self.username
+
+class Prompt(models.Model):
+    user = models.ForeignKey(User, related_name='prompts', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, unique=True)
+    prompt = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name

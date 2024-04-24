@@ -14,7 +14,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth import authenticate
 
-from .models import User, EditorFile
+from .models import User, EditorFile, Prompt
 
 from .serializers import UserAuthSerializer, FileCreateSerializer, FilePatchSerializer, FileListSerializer, PromptSerializer
 
@@ -471,27 +471,67 @@ class PromptView(APIView):
             # Token authentication failed
             return Response(status=status.HTTP_401_UNAUTHORIZED)
                 
-        serializer = PromptSerializer(user.prompts, many=True)
+        prompts = Prompt.objects.filter(user=user)
+        serializer = PromptSerializer(prompts, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-
         user = get_user_from_jwt(request)
 
         if user is None:
             # Token authentication failed
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        serializer = PromptSerializer(data=request.data, many=True)
-
+        serializer = PromptSerializer(data=request.data)
+        
         if serializer.is_valid():
-
-            user.prompts.extend(serializer.validated_data)
-            user.save()
-            return Response(status=status.HTTP_201_CREATED)
+            serializer.save(user=user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class PromptDetailView(APIView):
+    def get(self, request, pk):
+        user = get_user_from_jwt(request)
+
+        if user is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            prompt = Prompt.objects.get(pk=pk, user=user)
+            serializer = PromptSerializer(prompt)
+            return Response(serializer.data)
+        except Prompt.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, pk):
+        user = get_user_from_jwt(request)
+
+        if user is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            prompt = Prompt.objects.get(pk=pk, user=user)
+            serializer = PromptSerializer(prompt, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Prompt.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, pk):
+        user = get_user_from_jwt(request)
+
+        if user is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            prompt = Prompt.objects.get(pk=pk, user=user)
+            prompt.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Prompt.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 # Performs LLM inference on text provided.
 class GenerateTextView(APIView):

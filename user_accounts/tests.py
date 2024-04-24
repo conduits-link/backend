@@ -9,7 +9,7 @@ from django.http.cookie import SimpleCookie
 from .views import generate_jwt_token, encode_password_reset_uid, OrderFulfillmentWebhookView
 import jwt, json
 
-from .models import User, EditorFile
+from .models import User, EditorFile, Prompt
 import os , unittest.mock
 from openai import AuthenticationError 
 
@@ -486,7 +486,6 @@ class PromptViewTests(APITestCase):
         self.client = APIClient()
         self.username = 'test_user'
         self.user = User.objects.create_user(username=self.username, password='test_password')
-
         self.url = reverse('prompts')
 
         # Include the token in the client's request headers
@@ -498,37 +497,96 @@ class PromptViewTests(APITestCase):
         self.assertEqual(response.data, [])
 
     def test_get_prompts_nonempty(self):
-
-        self.user.prompts.append({"name": "Test", "prompt": "Test prompt"})
-        self.user.save()
-
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [{"name": "Test", "prompt": "Test prompt"}])
-
-        self.user.prompts.append({"name": "Test2", "prompt": "Test prompt 2"})
-        self.user.save()
+        prompt1 = Prompt.objects.create(user=self.user, name="Test", prompt="Test prompt")
+        prompt2 = Prompt.objects.create(user=self.user, name="Test2", prompt="Test prompt 2")
 
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [{"name": "Test", "prompt": "Test prompt"}, {"name": "Test2", "prompt": "Test prompt 2"}])
+        expected_data = [
+            {"id": prompt1.id, "name": "Test", "prompt": "Test prompt"},
+            {"id": prompt2.id, "name": "Test2", "prompt": "Test prompt 2"}
+        ]
+        self.assertEqual(response.data, expected_data)
 
     def test_post_single_prompt(self):
-        data = [{"name": "Test", "prompt": "Test prompt"}]
+        data = {"name": "Test", "prompt": "Test prompt"}
         response = self.client.post(self.url, data, format='json')
-        self.user.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.user.prompts, data)
+        self.assertEqual(self.user.prompts.count(), 1)
+        self.assertEqual(self.user.prompts.first().name, "Test")
+        self.assertEqual(self.user.prompts.first().prompt, "Test prompt")
 
-    def test_post_multiple_prompts(self):
-        data = [
-            {"name": "Summarise", "prompt": "Test prompt 1"},
-            {"name": "Expand", "prompt": "Test prompt 2"}
-        ]
+
+    def test_post_prompts_duplicate_name(self):
+        Prompt.objects.create(user=self.user, name="Test", prompt="Test prompt")
+
+        # Try and create a prompt with a duplicate name
+        data = {"name": "Test", "prompt": "Test prompt 2"}
         response = self.client.post(self.url, data, format='json')
-        self.user.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.user.prompts, data)
+
+        # Response should fail.
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_prompts_unauthenticated(self):
+        # Log out.
+        self.client.cookies = SimpleCookie({})
+        response = self.client.get(reverse('prompts'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_post_prompts_unauthenticated(self):
+        # Log out.
+        self.client.cookies = SimpleCookie({})
+        response = self.client.post(reverse('prompts'), {})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class PromptDetailViewTests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.username = 'test_user'
+        self.user = User.objects.create_user(username=self.username, password='test_password')
+        self.url = reverse('prompts-detail', kwargs={'pk': 1})  # Assuming the prompt id is 1
+
+        # Include the token in the client's request headers
+        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
+
+    def test_get_prompt(self):
+        prompt = Prompt.objects.create(user=self.user, name="Test", prompt="Test prompt")
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        expected_data = {"id": prompt.id, "name": "Test", "prompt": "Test prompt"}
+        self.assertEqual(response.data, expected_data)
+
+    def test_get_nonexistent_prompt(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_prompt(self):
+        prompt = Prompt.objects.create(user=self.user, name="Test", prompt="Test prompt")
+        data = {"name": "Updated Test", "prompt": "Updated prompt"}
+
+        response = self.client.put(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        prompt.refresh_from_db()
+        self.assertEqual(prompt.name, "Updated Test")
+        self.assertEqual(prompt.prompt, "Updated prompt")
+
+    def test_update_nonexistent_prompt(self):
+        data = {"name": "Updated Test", "prompt": "Updated prompt"}
+
+        response = self.client.put(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_prompt(self):
+        prompt = Prompt.objects.create(user=self.user, name="Test", prompt="Test prompt")
+
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Prompt.objects.filter(id=prompt.id).exists())
+
+    def test_delete_nonexistent_prompt(self):
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class GenerateTextTest(APITestCase):

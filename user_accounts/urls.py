@@ -27,7 +27,7 @@ urlpatterns = [
     # AI controller #
     #################   
     path('prompts', PromptView.as_view(), name='prompts'), 
-    path('prompts/<int:pk>', PromptDetailView.as_view(), name='prompts-detail'), 
+    path('prompts/<str:pk>', PromptDetailView.as_view(), name='prompts-detail'), 
     path('generate/text', GenerateTextView.as_view(), name='generate-text'), 
 
     ############

@@ -503,8 +503,8 @@ class PromptViewTests(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_data = [
-            {"id": prompt1.id, "name": "Test", "prompt": "Test prompt"},
-            {"id": prompt2.id, "name": "Test2", "prompt": "Test prompt 2"}
+            {"uid": prompt1.id, "name": "Test", "prompt": "Test prompt"},
+            {"uid": prompt2.id, "name": "Test2", "prompt": "Test prompt 2"}
         ]
         self.assertEqual(response.data, expected_data)
 
@@ -544,48 +544,48 @@ class PromptDetailViewTests(APITestCase):
         self.client = APIClient()
         self.username = 'test_user'
         self.user = User.objects.create_user(username=self.username, password='test_password')
-        self.url = reverse('prompts-detail', kwargs={'pk': 1})  # Assuming the prompt id is 1
+        self.prompt = Prompt.objects.create(user=self.user, name="Test", prompt="Test prompt")
+        self.url_name = 'prompts-detail'
+        self.url = reverse(self.url_name, kwargs={'pk': self.prompt.uid})
 
         # Include the token in the client's request headers
         self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})
 
     def test_get_prompt(self):
-        prompt = Prompt.objects.create(user=self.user, name="Test", prompt="Test prompt")
-
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = {"id": prompt.id, "name": "Test", "prompt": "Test prompt"}
+        expected_data = {"uid": str(self.prompt.uid), "name": "Test", "prompt": "Test prompt"}
         self.assertEqual(response.data, expected_data)
 
     def test_get_nonexistent_prompt(self):
-        response = self.client.get(self.url)
+        url = reverse(self.url_name, kwargs={'pk': 'nonexistent_id'})
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_update_prompt(self):
-        prompt = Prompt.objects.create(user=self.user, name="Test", prompt="Test prompt")
         data = {"name": "Updated Test", "prompt": "Updated prompt"}
 
         response = self.client.put(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        prompt.refresh_from_db()
-        self.assertEqual(prompt.name, "Updated Test")
-        self.assertEqual(prompt.prompt, "Updated prompt")
+        self.prompt.refresh_from_db()
+        self.assertEqual(self.prompt.name, "Updated Test")
+        self.assertEqual(self.prompt.prompt, "Updated prompt")
 
     def test_update_nonexistent_prompt(self):
+        url = reverse(self.url_name, kwargs={'pk': 'nonexistent_id'})
         data = {"name": "Updated Test", "prompt": "Updated prompt"}
 
-        response = self.client.put(self.url, data, format='json')
+        response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_prompt(self):
-        prompt = Prompt.objects.create(user=self.user, name="Test", prompt="Test prompt")
-
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Prompt.objects.filter(id=prompt.id).exists())
+        self.assertFalse(Prompt.objects.filter(uid=self.prompt.uid).exists())
 
     def test_delete_nonexistent_prompt(self):
-        response = self.client.delete(self.url)
+        url = reverse(self.url_name, kwargs={'pk': 'nonexistent_id'})
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 

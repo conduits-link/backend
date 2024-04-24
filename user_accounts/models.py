@@ -46,6 +46,7 @@ class User(AbstractUser):
         return self.username
 
 class Prompt(models.Model):
+    uid = models.CharField(primary_key=True, default=uuid.uuid4, max_length=100)
     user = models.ForeignKey(User, related_name='prompts', on_delete=models.CASCADE)
     name = models.CharField(max_length=100, unique=True)
     prompt = models.CharField(max_length=255)

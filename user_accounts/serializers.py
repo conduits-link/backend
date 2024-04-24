@@ -28,4 +28,4 @@ class FileListSerializer(serializers.ModelSerializer):
 class PromptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prompt
-        fields = ['id', 'name', 'prompt']
+        fields = ['uid', 'name', 'prompt']

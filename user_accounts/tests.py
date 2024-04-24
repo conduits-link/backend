@@ -481,6 +481,55 @@ class DocRetrieveUpdateDestroyViewTest(APITestCase):
         # Check if the document still exists
         self.assertTrue(EditorFile.objects.filter(pk=self.doc.pk).exists())
 
+class PromptViewTests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.username = 'test_user'
+        self.user = User.objects.create_user(username=self.username, password='test_password')
+
+        self.url = reverse('prompts')
+
+        # Include the token in the client's request headers
+        self.client.cookies = SimpleCookie({'jwt': generate_jwt_token(self.username)})        
+
+    def test_get_prompts_empty(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [])
+
+    def test_get_prompts_nonempty(self):
+
+        self.user.prompts.append({"name": "Test", "prompt": "Test prompt"})
+        self.user.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [{"name": "Test", "prompt": "Test prompt"}])
+
+        self.user.prompts.append({"name": "Test2", "prompt": "Test prompt 2"})
+        self.user.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [{"name": "Test", "prompt": "Test prompt"}, {"name": "Test2", "prompt": "Test prompt 2"}])
+
+    def test_post_single_prompt(self):
+        data = [{"name": "Test", "prompt": "Test prompt"}]
+        response = self.client.post(self.url, data, format='json')
+        self.user.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.user.prompts, data)
+
+    def test_post_multiple_prompts(self):
+        data = [
+            {"name": "Summarise", "prompt": "Test prompt 1"},
+            {"name": "Expand", "prompt": "Test prompt 2"}
+        ]
+        response = self.client.post(self.url, data, format='json')
+        self.user.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.user.prompts, data)
+
 
 class GenerateTextTest(APITestCase):
     def setUp(self):

@@ -24,3 +24,7 @@ class FileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = EditorFile
         fields = ('uid', 'title', 'body', 'created', 'modified') 
+
+class PromptSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    prompt = serializers.CharField()

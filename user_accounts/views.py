@@ -16,7 +16,7 @@ from django.contrib.auth import authenticate
 
 from .models import User, EditorFile
 
-from .serializers import UserAuthSerializer, FileCreateSerializer, FilePatchSerializer, FileListSerializer
+from .serializers import UserAuthSerializer, FileCreateSerializer, FilePatchSerializer, FileListSerializer, PromptSerializer
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -463,6 +463,36 @@ class DocRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         instance.delete()
         return Response({"detail": "The doc was removed."}, status=200)
 
+class PromptView(APIView):
+    def get(self, request):
+        user = get_user_from_jwt(request)
+        
+        if user is None:
+            # Token authentication failed
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+                
+        serializer = PromptSerializer(user.prompts, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+
+        user = get_user_from_jwt(request)
+
+        if user is None:
+            # Token authentication failed
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = PromptSerializer(data=request.data, many=True)
+
+        if serializer.is_valid():
+
+            user.prompts.extend(serializer.validated_data)
+            user.save()
+            return Response(status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 # Performs LLM inference on text provided.
 class GenerateTextView(APIView):
     def __init__(self):
@@ -579,7 +609,6 @@ class GenerateTextView(APIView):
             return Response({"error": "Messages in wrong format."}, status=status.HTTP_400_BAD_REQUEST)
 
         if self.prompt_cost(prompt) > user.credits:
-            print(self.prompt_cost(prompt))
             return Response({"error": "The cost of your prompt exceeds your remaining credits."}, status=status.HTTP_402_PAYMENT_REQUIRED)
 
         # If the maximum cost of the LLM is too high, and the user has 

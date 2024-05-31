@@ -15,9 +15,16 @@ Django, MySQL and AWS Backend for [Conduit](https://github.com/conduits-link/cor
 
 ### Set up MySQL Database
 
+If you want to test offline, you can do so with MySQL by following the instructions below.
+
 See [here](https://dev.mysql.com/doc/mysql-getting-started/en/) for the MySQL Getting Started docs, or follow the steps below.
 
 * First, install MySQL and set up your root account – see [here](https://dev.mysql.com/doc/mysql-getting-started/en/#mysql-getting-started-installing) for download links and details.
+
+* Inside this directory, run:
+    ```bash
+    pip install mysqlclient
+    ```
 
 * Check your MySQL installation works properly by logging in as root. In your terminal, run:
   ```bash

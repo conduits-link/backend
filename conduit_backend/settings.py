@@ -86,7 +86,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'conduit_backend.wsgi.application'
 
 
-# Database - using MySQL. Currently using temporary account details.
+# Database - using PostgreSQL. Currently using temporary account details.
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Load operating system environment variables

@@ -42,7 +42,8 @@ import logging
 
 load_dotenv()
 
-site_domain = 'conduits.link'
+email_domain = 'conduits.link'
+site_domain = 'app.conduits.link'
 
 def send_mailgun_email(recipient_emails, subject, message):
     """
@@ -55,7 +56,7 @@ def send_mailgun_email(recipient_emails, subject, message):
         email_response = requests.post(
         "https://api.mailgun.net/v3/" + mailgun_domain + "/messages",
         auth=("api", os.getenv("MAILGUN_API_KEY")),
-        data={"from": "Conduit <admin@" + site_domain + ">",
+        data={"from": "Conduit <admin@" + email_domain + ">",
             "to": recipient_emails,
             "subject": subject,
             "html": message})
@@ -176,7 +177,7 @@ class RegistrationEmailView(APIView):
         uid = urlsafe_base64_encode(force_bytes(email))
 
         # Create registration link with UID as string
-        registration_link = "https://www.conduits.link/register/" + uid
+        registration_link = "https://" + site_domain + "/register/" + uid
 
         # Send email
         subject = 'Conduit Account Registration'
@@ -266,7 +267,7 @@ class UserForgotView(APIView):
             uid = encode_password_reset_uid(email)
 
             # Create reset password link with UID as string
-            reset_link = "https://www." + site_domain + "/forgot/" + uid
+            reset_link = "https://" + site_domain + "/forgot/" + uid
 
             # Send email
             subject = 'Conduit - Reset Password Request.'
@@ -729,7 +730,7 @@ class UserCreditsView(APIView):
             # Token authentication failed
             return Response({"error": "Unauthorized"}, status=401)
         
-        final_url = "https://app." + site_domain + '/credits?session_id={CHECKOUT_SESSION_ID}'
+        final_url = "https://" + site_domain + '/credits?session_id={CHECKOUT_SESSION_ID}'
     
         try:
             checkout_session = stripe.checkout.Session.create(

@@ -503,8 +503,8 @@ class PromptViewTests(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_data = [
-            {"uid": prompt1.id, "name": "Test", "prompt": "Test prompt"},
-            {"uid": prompt2.id, "name": "Test2", "prompt": "Test prompt 2"}
+            {"uid": str(prompt1.uid), "name": "Test", "prompt": "Test prompt"},
+            {"uid": str(prompt2.uid), "name": "Test2", "prompt": "Test prompt 2"}
         ]
         self.assertEqual(response.data, expected_data)
 

@@ -6,10 +6,22 @@ Django, MySQL and AWS Backend for [Conduit](https://github.com/conduits-link/cor
 
 ## Contents
 
+* [Heroku Deployment](#heroku-deployment)
 * [Get Started - Development](#get-started---development)
   * [Set up MySQL Database](#set-up-mysql-database)
   * [Django and Server](#django-and-server-setup)
   * [Testing](#testing)
+
+## Heroku Deployment
+
+We are using the [Heroku Postgres](https://devcenter.heroku.com/articles/heroku-postgresql) add-on as our database.
+
+If you remove this add-on for any reason, then re-add it later, you must do the following:
+* In Heroku settings, update the Config Var `DATABASE_URL` to the URL given in the config var of the database you just added. This may be called something like `HEROKU_POSTGRESQL_AMBER_URL`, and will be of the format `postgres://username:password@hostname:port/dbname.`
+
+* Similarly, update the `DATABASE_URL` GitHub repository secret for this repo.
+
+* If using one, update your `.env` file accordingly. Run `source .env` to load this into your shell environment.
 
 ## Get Started - Local Development
 
